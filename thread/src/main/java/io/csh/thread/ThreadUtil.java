@@ -1,15 +1,19 @@
 package io.csh.thread;
 
-import io.csh.logging.Logger;
+import io.csh.utils.logging.Logger;
 import lombok.experimental.UtilityClass;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 스레드 유틸리티 클래스
  */
 @UtilityClass
 public class ThreadUtil {
+    private static final AtomicInteger threadNumber = new AtomicInteger(1);
+
     /**
      * 현재 스레드를 지정된 시간만큼 대기시킵니다.
      *
@@ -127,5 +131,25 @@ public class ThreadUtil {
      */
     public static void setCurrentThreadContextClassLoader(ClassLoader classLoader) {
         Thread.currentThread().setContextClassLoader(classLoader);
+    }
+
+    /**
+     * 데몬 스레드 팩토리를 생성합니다.
+     *
+     * @param namePrefix 스레드 이름 접두사
+     * @return 데몬 스레드 팩토리
+     */
+    public static ThreadFactory createDaemonThreadFactory(String namePrefix) {
+        return new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread t = new Thread(r, namePrefix + "-" + threadNumber.getAndIncrement());
+                t.setDaemon(true);
+                t.setUncaughtExceptionHandler((thread, throwable) -> {
+                    Logger.error("Uncaught exception in thread " + thread.getName(), throwable);
+                });
+                return t;
+            }
+        };
     }
 } 

@@ -1,9 +1,11 @@
 package io.csh.core.exception;
 
 /**
- * CSH Utils 기본 예외 클래스
+ * CSH 유틸리티의 기본 예외 클래스
  */
-public class CshException extends Exception {
+public class CshException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 기본 생성자
      */
