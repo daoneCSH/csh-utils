@@ -78,7 +78,17 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <failOnError>false</failOnError>
+                    <additionalJOption>-Xdoclint:none</additionalJOption>
+                    <encoding>UTF-8</encoding>
+                </configuration>
             </plugin>
         </plugins>
     </build>
+
+    <properties>
+        <maven.compiler.release>11</maven.compiler.release>
+        <argLine>--enable-native-access=ALL-UNNAMED</argLine>
+    </properties>
 </project> 

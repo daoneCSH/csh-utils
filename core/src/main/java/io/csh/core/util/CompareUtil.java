@@ -3,16 +3,17 @@ package io.csh.core.util;
 import lombok.experimental.UtilityClass;
 
 /**
- * 비교 연산 유틸리티 클래스
+ * Utility class for comparison operations.
  */
 @UtilityClass
 public class CompareUtil {
     /**
-     * 두 객체를 비교
+     * Compares two comparable objects.
      *
-     * @param o1 첫 번째 객체
-     * @param o2 두 번째 객체
-     * @return 비교 결과 (o1 < o2: -1, o1 == o2: 0, o1 > o2: 1)
+     * @param <T> the type of objects to be compared
+     * @param o1 the first object to be compared
+     * @param o2 the second object to be compared
+     * @return the comparison result (o1 < o2: -1, o1 == o2: 0, o1 > o2: 1)
      */
     public static <T extends Comparable<T>> int compareTo(T o1, T o2) {
         if (o1 == o2) {
@@ -25,6 +26,34 @@ public class CompareUtil {
             return 1;
         }
         return o1.compareTo(o2);
+    }
+
+    /**
+     * Checks if the given object is not null.
+     *
+     * @param <T> the type of the object to check
+     * @param obj the object to check
+     * @param message the message to use in the exception if the check fails
+     * @return the object if it is not null
+     * @throws NullPointerException if the object is null
+     */
+    public static <T> T checkNotNull(T obj, String message) {
+        if (obj == null) {
+            throw new NullPointerException(message);
+        }
+        return obj;
+    }
+
+    /**
+     * Checks if the given object is not null.
+     *
+     * @param <T> the type of the object to check
+     * @param obj the object to check
+     * @return the object if it is not null
+     * @throws NullPointerException if the object is null
+     */
+    public static <T> T checkNotNull(T obj) {
+        return checkNotNull(obj, "Object must not be null");
     }
 
     /**
@@ -42,31 +71,5 @@ public class CompareUtil {
             return false;
         }
         return o1.equals(o2);
-    }
-
-    /**
-     * 객체가 null인지 확인하고 null이면 예외 발생
-     *
-     * @param obj 확인할 객체
-     * @param message 예외 메시지
-     * @return null이 아닌 객체
-     * @throws IllegalArgumentException 객체가 null인 경우
-     */
-    public static <T> T checkNotNull(T obj, String message) {
-        if (obj == null) {
-            throw new IllegalArgumentException(message);
-        }
-        return obj;
-    }
-
-    /**
-     * 객체가 null인지 확인하고 null이면 예외 발생
-     *
-     * @param obj 확인할 객체
-     * @return null이 아닌 객체
-     * @throws IllegalArgumentException 객체가 null인 경우
-     */
-    public static <T> T checkNotNull(T obj) {
-        return checkNotNull(obj, "Object must not be null");
     }
 } 
