@@ -1,4 +1,4 @@
-package io.csh.exception;
+package io.csh.core.exception;
 
 import lombok.Getter;
 

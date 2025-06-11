@@ -1,4 +1,4 @@
-package io.csh.util;
+package io.csh.core.util;
 
 import lombok.experimental.UtilityClass;
 

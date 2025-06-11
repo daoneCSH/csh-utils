@@ -1,4 +1,4 @@
-package io.csh.constants;
+package io.csh.core.constants;
 
 /**
  * 에러 관련 상수 정의 클래스
