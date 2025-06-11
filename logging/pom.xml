@@ -16,7 +16,7 @@
     <dependencies>
         <dependency>
             <groupId>io.csh</groupId>
-            <artifactId>csh-utils-core</artifactId>
+            <artifactId>core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

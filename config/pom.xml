@@ -16,12 +16,12 @@
     <dependencies>
         <dependency>
             <groupId>io.csh</groupId>
-            <artifactId>csh-utils-core</artifactId>
+            <artifactId>core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.csh</groupId>
-            <artifactId>csh-utils-logging</artifactId>
+            <artifactId>logging</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
