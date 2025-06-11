@@ -16,30 +16,25 @@ buildNumber.properties
 *.iml
 *.ipr
 out/
-!**/src/main/**/out/
-!**/src/test/**/out/
 
 # Eclipse
-.apt_generated
 .classpath
-.factorypath
 .project
-.settings
-.springBeans
-.sts4-cache
+.settings/
 bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
 
 # NetBeans
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
 
 # VS Code
 .vscode/
+*.code-workspace
 
 # Mac OS
 .DS_Store
@@ -52,7 +47,6 @@ Desktop.ini
 # Logs
 *.log
 logs/
-log/
 
 # Compiled class files
 *.class
@@ -66,6 +60,22 @@ log/
 *.tar.gz
 *.rar
 
-# virtual machine crash logs
+# Virtual machine crash logs
 hs_err_pid*
-replay_pid* 
+replay_pid*
+
+# Test coverage
+.coverage
+.coverage.*
+coverage/
+htmlcov/
+.tox/
+.nox/
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/ 
