@@ -1,4 +1,4 @@
-package io.csh.core.constants;
+package io.csh.constants;
 
 /**
  * 공통 상수 정의 클래스

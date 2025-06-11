@@ -9,8 +9,8 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>csh-utils-core</artifactId>
-    <name>csh-utils-core</name>
+    <artifactId>core</artifactId>
+    <name>core</name>
     <description>CSH Utils Core Module</description>
 
     <dependencies>

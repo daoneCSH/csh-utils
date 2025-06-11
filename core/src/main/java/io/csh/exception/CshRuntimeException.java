@@ -1,13 +1,13 @@
-package io.csh.core.exception;
+package io.csh.exception;
 
 /**
- * CSH Utils 기본 예외 클래스
+ * CSH Utils 런타임 예외 클래스
  */
-public class CshException extends Exception {
+public class CshRuntimeException extends RuntimeException {
     /**
      * 기본 생성자
      */
-    public CshException() {
+    public CshRuntimeException() {
         super();
     }
 
@@ -16,7 +16,7 @@ public class CshException extends Exception {
      *
      * @param message 예외 메시지
      */
-    public CshException(String message) {
+    public CshRuntimeException(String message) {
         super(message);
     }
 
@@ -26,7 +26,7 @@ public class CshException extends Exception {
      * @param message 예외 메시지
      * @param cause 원인 예외
      */
-    public CshException(String message, Throwable cause) {
+    public CshRuntimeException(String message, Throwable cause) {
         super(message, cause);
     }
 
@@ -35,7 +35,7 @@ public class CshException extends Exception {
      *
      * @param cause 원인 예외
      */
-    public CshException(Throwable cause) {
+    public CshRuntimeException(Throwable cause) {
         super(cause);
     }
 
@@ -47,7 +47,7 @@ public class CshException extends Exception {
      * @param enableSuppression suppression 활성화 여부
      * @param writableStackTrace 스택 트레이스 작성 가능 여부
      */
-    protected CshException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    protected CshRuntimeException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 } 

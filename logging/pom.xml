@@ -9,8 +9,8 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>csh-utils-logging</artifactId>
-    <name>csh-utils-logging</name>
+    <artifactId>logging</artifactId>
+    <name>logging</name>
     <description>CSH Utils Logging Module</description>
 
     <dependencies>

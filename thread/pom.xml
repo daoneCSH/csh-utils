@@ -9,8 +9,8 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>csh-utils-thread</artifactId>
-    <name>csh-utils-thread</name>
+    <artifactId>thread</artifactId>
+    <name>thread</name>
     <description>CSH Utils Thread Module</description>
 
     <dependencies>

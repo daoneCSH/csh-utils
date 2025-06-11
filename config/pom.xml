@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>config</artifactId>
-    <name>csh-utils-config</name>
+    <name>config</name>
     <description>CSH Utils Config Module</description>
 
     <dependencies>
