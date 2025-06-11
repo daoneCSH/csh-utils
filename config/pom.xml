@@ -9,7 +9,7 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>csh-utils-config</artifactId>
+    <artifactId>config</artifactId>
     <name>csh-utils-config</name>
     <description>CSH Utils Config Module</description>
 

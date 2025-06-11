@@ -13,10 +13,10 @@
     <description>CSH Utils Library</description>
 
     <modules>
-        <module>csh-utils-core</module>
-        <module>csh-utils-logging</module>
-        <module>csh-utils-thread</module>
-        <module>csh-utils-config</module>
+        <module>core</module>
+        <module>logging</module>
+        <module>thread</module>
+        <module>config</module>
     </modules>
 
     <properties>
