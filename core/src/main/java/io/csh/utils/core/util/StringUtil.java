@@ -1,12 +1,15 @@
 package io.csh.utils.core.util;
 
-import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * 문자열 처리 유틸리티 클래스
+ * 문자열 관련 유틸리티 클래스
  */
-@UtilityClass
-public class StringUtil {
+public final class StringUtil {
+    private StringUtil() {
+        throw new AssertionError("Utility class");
+    }
+
     /**
      * 문자열이 null이거나 빈 문자열인지 확인
      *

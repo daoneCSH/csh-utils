@@ -1,6 +1,8 @@
 package io.csh.utils.core.util;
 
-import lombok.experimental.UtilityClass;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -8,10 +10,13 @@ import java.nio.file.*;
 import java.util.List;
 
 /**
- * 파일 처리 유틸리티 클래스
+ * 파일 관련 유틸리티 클래스
  */
-@UtilityClass
-public class FileUtil {
+public final class FileUtil {
+    private FileUtil() {
+        throw new AssertionError("Utility class");
+    }
+
     /**
      * 파일이 존재하는지 확인
      *
