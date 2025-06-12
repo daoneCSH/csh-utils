@@ -6,7 +6,7 @@
 
     <groupId>io.csh</groupId>
     <artifactId>csh-utils</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
 
     <name>csh-utils</name>
@@ -17,6 +17,7 @@
         <module>logging</module>
         <module>thread</module>
         <module>config</module>
+        <module>banner</module>
     </modules>
 
     <properties>
@@ -141,4 +142,11 @@
             </plugin>
         </plugins>
     </build>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+        </license>
+    </licenses>
 </project> 

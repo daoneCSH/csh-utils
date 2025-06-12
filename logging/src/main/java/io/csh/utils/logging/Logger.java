@@ -1,6 +1,6 @@
 package io.csh.utils.logging;
 
-import io.csh.core.exception.CshException;
+import io.csh.utils.core.exception.CshException;
 import java.io.File;
 import java.io.FileWriter;
 import java.text.SimpleDateFormat;
