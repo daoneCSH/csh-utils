@@ -3,161 +3,143 @@ package io.csh.utils.logging;
 import io.csh.utils.core.exception.CshException;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.Date;
 
 /**
- * 로깅 유틸리티 클래스
+ * 로깅을 위한 유틸리티 클래스
  */
 public class Logger {
     private static final LogConfig config = LogConfig.getInstance();
-    private static final ConcurrentHashMap<LogCategory, FileWriter> categoryWriters = new ConcurrentHashMap<>();
-    private static final ReentrantLock writerLock = new ReentrantLock();
+    private static final String LOG_FILE = config.getLogDirectory() + "/application.log";
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    private static FileWriter writer;
+    private static LogRotation logRotation;
 
+    static {
+        try {
+            // 로그 디렉토리 생성
+            File logDir = new File(config.getLogDirectory());
+            if (!logDir.exists()) {
+                logDir.mkdirs();
+            }
+
+            // 로그 파일 생성
+            File logFile = new File(LOG_FILE);
+            if (!logFile.exists()) {
+                logFile.createNewFile();
+            }
+
+            // 로그 로테이션 설정
+            logRotation = new LogRotation(LOG_FILE, config.getMaxFileSize(), config.getMaxBackupCount());
+            
+            // 파일 writer 초기화
+            writer = new FileWriter(logFile, true);
+        } catch (IOException e) {
+            System.err.println("로그 파일 초기화 중 오류 발생: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 디버그 레벨 로그를 기록합니다.
+     */
     public static void debug(String message) {
         try {
-            log(LogCategory.GENERAL, LogLevel.DEBUG, message, null);
+            log(LogLevel.DEBUG, message, null);
         } catch (CshException e) {
             System.err.println("Failed to write debug log: " + e.getMessage());
         }
     }
 
+    /**
+     * 정보 레벨 로그를 기록합니다.
+     */
     public static void info(String message) {
         try {
-            log(LogCategory.GENERAL, LogLevel.INFO, message, null);
+            log(LogLevel.INFO, message, null);
         } catch (CshException e) {
             System.err.println("Failed to write info log: " + e.getMessage());
         }
     }
 
+    /**
+     * 경고 레벨 로그를 기록합니다.
+     */
     public static void warn(String message) {
         try {
-            log(LogCategory.GENERAL, LogLevel.WARN, message, null);
+            log(LogLevel.WARN, message, null);
         } catch (CshException e) {
             System.err.println("Failed to write warn log: " + e.getMessage());
         }
     }
 
+    /**
+     * 에러 레벨 로그를 기록합니다.
+     */
     public static void error(String message) {
         try {
-            log(LogCategory.GENERAL, LogLevel.ERROR, message, null);
+            log(LogLevel.ERROR, message, null);
         } catch (CshException e) {
             System.err.println("Failed to write error log: " + e.getMessage());
         }
     }
 
-    public static void error(String message, Throwable t) {
+    /**
+     * 에러 레벨 로그를 예외와 함께 기록합니다.
+     */
+    public static void error(String message, Throwable throwable) {
         try {
-            log(LogCategory.GENERAL, LogLevel.ERROR, message, t);
+            log(LogLevel.ERROR, message, throwable);
         } catch (CshException e) {
             System.err.println("Failed to write error log: " + e.getMessage());
         }
     }
 
-    public static void debugDb(String message) {
+    /**
+     * 로그를 기록합니다.
+     */
+    private static synchronized void log(LogLevel level, String message, Throwable throwable) throws CshException {
         try {
-            log(LogCategory.DB, LogLevel.DEBUG, message, null);
-        } catch (CshException e) {
-            System.err.println("Failed to write DB debug log: " + e.getMessage());
-        }
-    }
+            // 날짜 변경 체크
+            logRotation.checkDateChange();
 
-    public static void infoDb(String message) {
-        try {
-            log(LogCategory.DB, LogLevel.INFO, message, null);
-        } catch (CshException e) {
-            System.err.println("Failed to write DB info log: " + e.getMessage());
-        }
-    }
-
-    public static void warnDb(String message) {
-        try {
-            log(LogCategory.DB, LogLevel.WARN, message, null);
-        } catch (CshException e) {
-            System.err.println("Failed to write DB warn log: " + e.getMessage());
-        }
-    }
-
-    public static void errorDb(String message) {
-        try {
-            log(LogCategory.DB, LogLevel.ERROR, message, null);
-        } catch (CshException e) {
-            System.err.println("Failed to write DB error log: " + e.getMessage());
-        }
-    }
-
-    public static void debugWeb(String message) {
-        try {
-            log(LogCategory.WEB, LogLevel.DEBUG, message, null);
-        } catch (CshException e) {
-            System.err.println("Failed to write Web debug log: " + e.getMessage());
-        }
-    }
-
-    public static void infoWeb(String message) {
-        try {
-            log(LogCategory.WEB, LogLevel.INFO, message, null);
-        } catch (CshException e) {
-            System.err.println("Failed to write Web info log: " + e.getMessage());
-        }
-    }
-
-    public static void warnWeb(String message) {
-        try {
-            log(LogCategory.WEB, LogLevel.WARN, message, null);
-        } catch (CshException e) {
-            System.err.println("Failed to write Web warn log: " + e.getMessage());
-        }
-    }
-
-    public static void errorWeb(String message) {
-        try {
-            log(LogCategory.WEB, LogLevel.ERROR, message, null);
-        } catch (CshException e) {
-            System.err.println("Failed to write Web error log: " + e.getMessage());
-        }
-    }
-
-    private static void log(LogCategory category, LogLevel level, String message, Throwable t) throws CshException {
-        if (config.isEnabled(level)) {
-            String logMessage = String.format("%s [%s] %s - %s",
-                    dateFormat.format(System.currentTimeMillis()),
+            // 로그 메시지 생성
+            String logMessage = String.format("%s [%s] - %s",
+                    dateFormat.format(new Date()),
                     level.name(),
-                    category.getValue(),
                     message);
 
-            if (t != null) {
-                logMessage += "\n" + t.toString();
+            // 예외 정보 추가
+            if (throwable != null) {
+                logMessage += "\n" + throwable.toString();
+                for (StackTraceElement element : throwable.getStackTrace()) {
+                    logMessage += "\n\tat " + element.toString();
+                }
             }
 
-            try {
-                FileWriter writer = getWriter(category);
-                writerLock.lock();
-                try {
-                    writer.write(logMessage + "\n");
-                    writer.flush();
-                } finally {
-                    writerLock.unlock();
-                }
-            } catch (Exception e) {
-                throw new CshException("Failed to write log", e);
-            }
+            // 로그 파일에 기록
+            writer.write(logMessage + "\n");
+            writer.flush();
+
+            // 파일 크기 업데이트 및 로테이션 체크
+            logRotation.updateFileSize(logMessage.getBytes().length + 1); // +1 for newline
+
+        } catch (IOException e) {
+            throw new CshException("Failed to write log: " + e.getMessage());
         }
     }
 
-    private static FileWriter getWriter(LogCategory category) throws CshException {
-        return categoryWriters.computeIfAbsent(category, k -> {
-            try {
-                File logDir = new File(config.getLogDirectory());
-                if (!logDir.exists()) {
-                    logDir.mkdirs();
-                }
-                return new FileWriter(new File(logDir, category.getValue() + ".log"), true);
-            } catch (Exception e) {
-                throw new CshException("Failed to create log writer", e);
+    /**
+     * 로그 파일을 닫습니다.
+     */
+    public static void close() {
+        try {
+            if (writer != null) {
+                writer.close();
             }
-        });
+        } catch (IOException e) {
+            System.err.println("Failed to close log file: " + e.getMessage());
+        }
     }
 } 

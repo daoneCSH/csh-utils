@@ -4,118 +4,94 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
-import lombok.Getter;
 
 /**
  * 로깅 설정을 관리하는 클래스
  */
-@Getter
 public class LogConfig {
     private static final String CONFIG_FILE = "logging.properties";
-    private static final String LOG_LEVEL_PROPERTY = "log.level";
-    private static final String LOG_FILE_PROPERTY = "log.file";
-    private static final String LOG_PATTERN_PROPERTY = "log.pattern";
-
-    private static LogLevel currentLevel = LogLevel.INFO;
-    private static String logFile = "application.log";
-    private static String logPattern = "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n";
-
-    private static final LogConfig INSTANCE = new LogConfig();
+    private static LogConfig instance;
+    private final Properties properties;
     private final String logDirectory;
-    private final LogLevel minLevel;
-
-    static {
-        loadConfig();
-    }
+    private final long maxFileSize;
+    private final int maxBackupCount;
+    private LogLevel currentLevel;
 
     private LogConfig() {
-        this.logDirectory = System.getProperty("user.home") + "/logs";
-        this.minLevel = LogLevel.INFO;
+        properties = new Properties();
+        String configPath = System.getProperty("user.dir") + File.separator + CONFIG_FILE;
+        
+        try (FileInputStream fis = new FileInputStream(configPath)) {
+            properties.load(fis);
+        } catch (IOException e) {
+            System.err.println("설정 파일을 찾을 수 없습니다: " + configPath);
+        }
+
+        // 기본값 설정
+        this.logDirectory = properties.getProperty("log.directory", "logs");
+        
+        // 로그 파일 크기 설정 (시스템 프로퍼티 우선, 그 다음 설정 파일)
+        String maxFileSizeStr = System.getProperty("spice.log.maxFileSize", 
+                                 properties.getProperty("log.maxFileSize", "10485760")); // 기본값 10MB
+        long tempMaxFileSize;
+        try {
+            tempMaxFileSize = Long.parseLong(maxFileSizeStr);
+        } catch (NumberFormatException e) {
+            System.err.println("잘못된 로그 파일 크기 설정: " + maxFileSizeStr + ", 기본값 10MB로 설정됩니다.");
+            tempMaxFileSize = 10 * 1024 * 1024; // 10MB
+        }
+        this.maxFileSize = tempMaxFileSize;
+        
+        // 백업 파일 수 설정 (시스템 프로퍼티 우선, 그 다음 설정 파일)
+        String maxBackupCountStr = System.getProperty("spice.log.maxBackupCount", 
+                                    properties.getProperty("log.maxBackupCount", "5")); // 기본값 5개
+        int tempMaxBackupCount;
+        try {
+            tempMaxBackupCount = Integer.parseInt(maxBackupCountStr);
+        } catch (NumberFormatException e) {
+            System.err.println("잘못된 백업 파일 수 설정: " + maxBackupCountStr + ", 기본값 5개로 설정됩니다.");
+            tempMaxBackupCount = 5;
+        }
+        this.maxBackupCount = tempMaxBackupCount;
+        
+        // 로그 레벨 설정 (시스템 프로퍼티 우선, 그 다음 설정 파일)
+        String levelStr = System.getProperty("spice.log.level", 
+                           properties.getProperty("log.level", "INFO"));
+        try {
+            this.currentLevel = LogLevel.valueOf(levelStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            System.err.println("잘못된 로그 레벨 설정: " + levelStr + ", 기본값 INFO로 설정됩니다.");
+            this.currentLevel = LogLevel.INFO;
+        }
     }
 
-    public static LogConfig getInstance() {
-        return INSTANCE;
+    public static synchronized LogConfig getInstance() {
+        if (instance == null) {
+            instance = new LogConfig();
+        }
+        return instance;
     }
 
     public String getLogDirectory() {
         return logDirectory;
     }
 
-    /**
-     * 설정 파일에서 로깅 설정을 로드합니다.
-     */
-    public static void loadConfig() {
-        File configFile = new File(CONFIG_FILE);
-        if (!configFile.exists()) {
-            return;
-        }
-
-        Properties props = new Properties();
-        try (FileInputStream fis = new FileInputStream(configFile)) {
-            props.load(fis);
-            
-            String levelStr = props.getProperty(LOG_LEVEL_PROPERTY);
-            if (levelStr != null) {
-                currentLevel = LogLevel.valueOf(levelStr.toUpperCase());
-            }
-
-            String fileStr = props.getProperty(LOG_FILE_PROPERTY);
-            if (fileStr != null) {
-                logFile = fileStr;
-            }
-
-            String patternStr = props.getProperty(LOG_PATTERN_PROPERTY);
-            if (patternStr != null) {
-                logPattern = patternStr;
-            }
-        } catch (IOException e) {
-            System.err.println("Failed to load logging configuration: " + e.getMessage());
-        }
+    public long getMaxFileSize() {
+        return maxFileSize;
     }
 
-    /**
-     * 현재 로그 레벨을 반환합니다.
-     */
-    public static LogLevel getCurrentLevel() {
-        return currentLevel;
-    }
-
-    /**
-     * 로그 레벨을 설정합니다.
-     */
-    public static void setCurrentLevel(LogLevel level) {
-        currentLevel = level;
-    }
-
-    /**
-     * 로그 파일 경로를 반환합니다.
-     */
-    public static String getLogFile() {
-        return logFile;
-    }
-
-    /**
-     * 로그 파일 경로를 설정합니다.
-     */
-    public static void setLogFile(String file) {
-        logFile = file;
-    }
-
-    /**
-     * 로그 패턴을 반환합니다.
-     */
-    public static String getLogPattern() {
-        return logPattern;
-    }
-
-    /**
-     * 로그 패턴을 설정합니다.
-     */
-    public static void setLogPattern(String pattern) {
-        logPattern = pattern;
+    public int getMaxBackupCount() {
+        return maxBackupCount;
     }
 
     public boolean isEnabled(LogLevel level) {
         return level.ordinal() >= currentLevel.ordinal();
+    }
+
+    /**
+     * 현재 설정된 로그 레벨을 반환합니다.
+     */
+    public LogLevel getCurrentLevel() {
+        return currentLevel;
     }
 } 

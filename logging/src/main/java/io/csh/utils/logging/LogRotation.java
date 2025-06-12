@@ -2,14 +2,8 @@ package io.csh.utils.logging;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 /**
  * 로그 파일 로테이션을 관리하는 클래스
@@ -17,12 +11,11 @@ import java.util.stream.Stream;
 public class LogRotation {
     private static final String DATE_PATTERN = "yyyy-MM-dd";
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_PATTERN);
-    private static final Pattern LOG_FILE_PATTERN = Pattern.compile(".*\\.log(\\.[0-9]+)?$");
     
     private final String logFile;
     private final long maxFileSize;
     private final int maxBackupCount;
-    private final AtomicLong currentFileSize;
+    private long currentFileSize;
     private String currentDate;
 
     public LogRotation(String logFile, long maxFileSize, int maxBackupCount) {
@@ -36,16 +29,16 @@ public class LogRotation {
         this.logFile = logFile;
         this.maxFileSize = maxFileSize;
         this.maxBackupCount = maxBackupCount;
-        this.currentFileSize = new AtomicLong(0);
+        this.currentFileSize = 0;
         this.currentDate = dateFormat.format(new Date());
     }
 
     /**
      * 로그 파일 크기를 업데이트하고 필요한 경우 로테이션을 수행합니다.
      */
-    public void updateFileSize(long bytesWritten) {
-        long newSize = currentFileSize.addAndGet(bytesWritten);
-        if (newSize >= maxFileSize) {
+    public synchronized void updateFileSize(long bytesWritten) {
+        currentFileSize += bytesWritten;
+        if (currentFileSize >= maxFileSize) {
             rotate();
         }
     }
@@ -53,7 +46,7 @@ public class LogRotation {
     /**
      * 날짜가 변경되었는지 확인하고 필요한 경우 로테이션을 수행합니다.
      */
-    public void checkDateChange() {
+    public synchronized void checkDateChange() {
         String today = dateFormat.format(new Date());
         if (!today.equals(currentDate)) {
             rotate();
@@ -64,7 +57,7 @@ public class LogRotation {
     /**
      * 로그 파일을 로테이션합니다.
      */
-    private synchronized void rotate() {
+    private void rotate() {
         try {
             File currentLogFile = new File(logFile);
             if (!currentLogFile.exists()) {
@@ -90,10 +83,7 @@ public class LogRotation {
 
             // 새로운 로그 파일 생성
             currentLogFile.createNewFile();
-            currentFileSize.set(0);
-
-            // 오래된 로그 파일 정리
-            cleanupOldLogs();
+            currentFileSize = 0;
         } catch (IOException e) {
             System.err.println("로그 파일 로테이션 중 오류 발생: " + e.getMessage());
         }
@@ -107,56 +97,5 @@ public class LogRotation {
             return logFile + "." + currentDate;
         }
         return logFile + "." + currentDate + "." + index;
-    }
-
-    /**
-     * 오래된 로그 파일을 정리합니다.
-     */
-    private void cleanupOldLogs() {
-        try {
-            Path logDir = Paths.get(new File(logFile).getParent());
-            if (!Files.exists(logDir)) {
-                return;
-            }
-
-            try (Stream<Path> files = Files.list(logDir)) {
-                files.filter(path -> {
-                    String fileName = path.getFileName().toString();
-                    return LOG_FILE_PATTERN.matcher(fileName).matches() &&
-                           !fileName.equals(new File(logFile).getName());
-                })
-                .sorted((p1, p2) -> {
-                    try {
-                        return Files.getLastModifiedTime(p2).compareTo(Files.getLastModifiedTime(p1));
-                    } catch (IOException e) {
-                        return 0;
-                    }
-                })
-                .skip(maxBackupCount)
-                .forEach(path -> {
-                    try {
-                        Files.delete(path);
-                    } catch (IOException e) {
-                        System.err.println("로그 파일 삭제 중 오류 발생: " + e.getMessage());
-                    }
-                });
-            }
-        } catch (IOException e) {
-            System.err.println("로그 파일 정리 중 오류 발생: " + e.getMessage());
-        }
-    }
-
-    /**
-     * 현재 날짜를 반환합니다. (테스트용)
-     */
-    String getCurrentDate() {
-        return currentDate;
-    }
-
-    /**
-     * 현재 날짜를 설정합니다. (테스트용)
-     */
-    void setCurrentDate(String date) {
-        this.currentDate = date;
     }
 } 

@@ -7,15 +7,13 @@ import java.time.LocalDateTime;
  */
 public class LogMessage {
     private final LogLevel level;
-    private final LogCategory category;
     private final String message;
     private final Throwable throwable;
     private final LocalDateTime timestamp;
     private final String threadName;
 
-    public LogMessage(LogLevel level, LogCategory category, String message, Throwable throwable) {
+    public LogMessage(LogLevel level, String message, Throwable throwable) {
         this.level = level;
-        this.category = category;
         this.message = message;
         this.throwable = throwable;
         this.timestamp = LocalDateTime.now();
@@ -24,10 +22,6 @@ public class LogMessage {
 
     public LogLevel getLevel() {
         return level;
-    }
-
-    public LogCategory getCategory() {
-        return category;
     }
 
     public String getMessage() {
@@ -50,7 +44,7 @@ public class LogMessage {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(timestamp).append(" [").append(threadName).append("] ")
-          .append(level).append(" ").append(category).append(" - ")
+          .append(level).append(" - ")
           .append(message);
         
         if (throwable != null) {
