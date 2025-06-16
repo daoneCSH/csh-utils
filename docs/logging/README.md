@@ -17,28 +17,99 @@ CSH Utils의 로깅 모듈은 간단하고 효율적인 로깅 기능을 제공�
 
 ## Configuration
 
-### System Properties
-JVM 옵션으로 로깅 설정을 지정할 수 있습니다:
+### 우선순위
+로깅 설정은 다음 순서로 적용됩니다 (위에서 아래로 우선순위가 낮아짐):
 
+1. VM/시스템 프로퍼티 (`-D` 옵션)
+2. application 프로퍼티 (`application.properties` 또는 `application.yml`)
+3. logging 프로퍼티 (`logging.properties`)
+4. 기본값
+
+예를 들어, 로그 레벨을 설정하는 경우:
 ```bash
-# 디버그 모드 활성화
--Dcsh.debug=true
+# 1. VM 옵션 (최우선)
+-Dlogging.level=DEBUG
 
-# 로그 레벨 설정 (TRACE, DEBUG, INFO, WARN, ERROR)
--Dlogging.level=INFO
-```
-
-### Properties File
-`logging.properties` 파일을 통해 설정할 수 있습니다:
-
-```properties
-# 로그 레벨
+# 2. application.properties
 logging.level=INFO
+
+# 3. logging.properties
+logging.level=WARN
+
+# 4. 기본값
+# 기본값: INFO
 ```
 
-### Default Values
-- 로그 레벨: INFO
-- 디버그 모드: false
+### 설정 방법
+
+#### JVM 옵션으로 설정
+```bash
+-Dlogging.level=INFO
+-Dlogging.file.path=/path/to/logs
+-Dlogging.file.max-size=20MB
+-Dlogging.file.retention-days=30
+```
+
+#### application.properties로 설정
+```properties
+logging.level=INFO
+logging.file.path=/path/to/logs
+logging.file.max-size=20MB
+logging.file.retention-days=30
+```
+
+#### logging.properties로 설정
+```properties
+logging.level=INFO
+logging.file.path=/path/to/logs
+logging.file.max-size=20MB
+logging.file.retention-days=30
+```
+
+### 기본값
+- 로그 레벨: `INFO`
+- 로그 파일 경로: `logs` 디렉토리
+- 로그 파일 이름: `application.log`
+- 최대 파일 크기: `10MB`
+- 최대 전체 크기: `1GB`
+- 보관 기간: `365`일
+- 압축 단위: `WEEK`
+- 압축 값: `1`
+- 압축 형식: `gz`
+- 로그 패턴: `%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n`
+- 콘솔 출력: `true`
+
+### 로깅 설정 상태 확인
+현재 적용된 로깅 설정을 확인하려면 `LoggingConfig` 클래스의 `printLoggingStatus()` 메서드를 사용할 수 있습니다:
+
+```java
+import io.csh.utils.logging.config.LoggingConfig;
+
+public class LoggingExample {
+    public static void main(String[] args) {
+        // 로깅 설정 상태 출력
+        LoggingConfig config = LoggingConfig.getInstance();
+        System.out.println(config.printLoggingStatus());
+    }
+}
+```
+
+출력 예시:
+```
+=== Logging Configuration Status ===
+Log Level: INFO
+Console Enabled: true
+Log File Path: logs
+Log File Name: application.log
+Log File Max Size: 10MB
+Log File Max Total Size: 1GB
+Log File Retention Days: 365
+Log File Compression: WEEK 1 (gz)
+Log Pattern: %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+===================================
+```
+
+이를 통해 현재 적용된 로깅 설정과 우선순위에 따라 어떤 값이 선택되었는지 확인할 수 있습니다.
 
 ## Usage Examples
 

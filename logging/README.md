@@ -1,103 +1,62 @@
-# 로깅 시스템
+# CSH Utils Logging Module
 
-## 개요
-이 로깅 시스템은 애플리케이션의 로그를 효율적으로 수집하고 저장하기 위한 라이브러리입니다. 로그 수집과 저장을 분리하고, 비동기 처리를 통해 성능을 최적화했습니다.
+## Overview
+CSH Utils Logging Module은 Java 애플리케이션을 위한 고성능 로깅 라이브러리입니다. 비동기 처리와 배치 처리를 통해 최적화된 성능을 제공하며, 다양한 로깅 기능을 지원합니다.
 
-## 주요 기능
+## Features
+- 비동기 로그 처리로 애플리케이션 성능 최적화
 - 로그 레벨 기반 필터링 (DEBUG, INFO, WARN, ERROR)
-- 비동기 로그 저장
-- 로그 파일 자동 회전
-- 예외 정보 포함 로깅
-- 스레드 정보 포함 로깅
-- 배치 처리로 성능 최적화
+- 자동 로그 파일 회전 및 압축
+- 스레드 정보 및 예외 스택 트레이스 포함
+- 배치 처리로 디스크 I/O 최소화
 
-## 시스템 구조
-
-### 1. LogQueue
-- 싱글톤 패턴으로 구현된 로그 메시지 큐
-- `BlockingQueue`를 사용하여 스레드 안전성 보장
-- 로그 메시지의 임시 저장소 역할
-
-### 2. Logger
-- 로그 메시지 수집 담당
-- 로그 레벨에 따른 필터링
-- 예외 정보 포함 로깅 지원
-- 싱글톤 패턴으로 구현
-
-### 3. LogWriter
-- 로그 메시지 저장을 위한 인터페이스
-- 큐에서 메시지를 가져와 저장하는 역할
-- 구현체: LogWriterImpl, AsyncLogWriter
-
-### 4. LogWriterImpl
-- 로그 메시지를 파일에 저장하는 기본 구현체
-- 로그 파일 자동 회전 기능
-- 파일 크기 기반 회전
-- 타임스탬프 기반 백업 파일 생성
-
-### 5. AsyncLogWriter
-- 비동기 로그 저장 구현체
-- 주기적인 배치 처리 (100ms 간격)
-- 배치 크기: 100개
-- ScheduledExecutorService를 사용한 스케줄링
-
-### 6. LogConfig
-- 로깅 설정 관리
-- 시스템 프로퍼티 기반 설정
-- 기본값 제공
-- 싱글톤 패턴으로 구현
-
-## 설정 옵션
-
-### 시스템 프로퍼티
-- `log.dir`: 로그 파일 디렉토리 (기본값: "logs")
-- `log.level`: 로그 레벨 (기본값: INFO)
-- `log.maxFileSize`: 최대 로그 파일 크기 (기본값: 10MB)
-
-## 사용 예시
-
-```java
-// Logger 인스턴스 가져오기
-Logger logger = Logger.getInstance();
-
-// 기본 로깅
-logger.info("애플리케이션이 시작되었습니다.");
-
-// 예외 정보 포함 로깅
-try {
-    // ... 코드 ...
-} catch (Exception e) {
-    logger.error("오류가 발생했습니다.", e);
-}
-
-// 로그 레벨별 로깅
-logger.debug("디버그 메시지");
-logger.info("정보 메시지");
-logger.warn("경고 메시지");
-logger.error("오류 메시지");
+## Installation
+Maven을 사용하여 프로젝트에 추가:
+```xml
+<dependency>
+    <groupId>io.csh</groupId>
+    <artifactId>csh-utils-logging</artifactId>
+    <version>1.0.2</version>
+</dependency>
 ```
 
-## 성능 최적화
-1. 비동기 처리
-   - 로그 수집과 저장의 분리
-   - 메인 스레드 블로킹 방지
+## Quick Start
+```java
+import io.csh.utils.logging.Logger;
 
-2. 배치 처리
-   - 100ms 간격으로 로그 처리
-   - 최대 100개 메시지 배치 처리
-   - 디스크 I/O 최소화
+public class Example {
+    public static void main(String[] args) {
+        // 기본 로깅
+        Logger.info("애플리케이션이 시작되었습니다.");
+        
+        // 예외 정보 포함 로깅
+        try {
+            // ... 코드 ...
+        } catch (Exception e) {
+            Logger.error("오류가 발생했습니다.", e);
+        }
+    }
+}
+```
 
-3. 메모리 관리
-   - BlockingQueue를 통한 메모리 버퍼링
-   - 파일 크기 기반 로그 회전
+## Documentation
+자세한 사용 방법과 설정 옵션은 다음 문서를 참조하세요:
+- [사용 가이드](../docs/usage)
+- [설계 문서](../docs/design)
 
-## 주의사항
-1. 애플리케이션 종료 시 반드시 `shutdown()` 메서드 호출
-2. 로그 파일 디렉토리의 쓰기 권한 확인
-3. 충분한 디스크 공간 확보
+## Configuration
 
-## 향후 개선 사항
-1. 로그 포맷 커스터마이징 지원
-2. 로그 압축 기능 추가
-3. 로그 레벨 동적 변경 지원
-4. 메트릭 수집 기능 추가 
+로깅 설정은 다음 순서로 적용됩니다 (위에서 아래로 우선순위가 낮아짐):
+
+1. VM/시스템 프로퍼티 (`-D` 옵션)
+2. application 프로퍼티 (`application.properties` 또는 `application.yml`)
+3. logging 프로퍼티 (`logging.properties`)
+4. 기본값
+
+자세한 설정 방법과 예제는 [로깅 설정 가이드](../../docs/usage/logging-configuration.md)를 참조하세요.
+
+## Contributing
+프로젝트에 기여하고 싶으시다면 [CONTRIBUTING.md](../CONTRIBUTING.md)를 참조하세요.
+
+## License
+이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 [LICENSE](../LICENSE) 파일을 참조하세요. 

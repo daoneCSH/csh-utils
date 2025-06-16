@@ -10,7 +10,6 @@
     </parent>
 
     <artifactId>config</artifactId>
-    <version>1.0.0</version>
     <name>config</name>
     <description>CSH Utils Config Module</description>
 
@@ -18,12 +17,10 @@
         <dependency>
             <groupId>io.csh</groupId>
             <artifactId>core</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.csh</groupId>
             <artifactId>logging</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.yaml</groupId>

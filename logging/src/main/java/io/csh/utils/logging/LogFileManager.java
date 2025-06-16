@@ -1,6 +1,7 @@
 package io.csh.utils.logging;
 
 import io.csh.utils.core.config.SystemProperties;
+import io.csh.utils.logging.config.LoggingConfig;
 import io.csh.utils.logging.config.LoggingProperties;
 
 import java.io.BufferedWriter;
@@ -37,10 +38,12 @@ public class LogFileManager {
     private final long maxFileSize;
     private final boolean overwrite;
     private final String appName;
-    private volatile int currentFileNumber = 1;
     private final Object fileLock = new Object();
+    private final LoggingConfig config;
     
     private LogFileManager() {
+        this.config = LoggingConfig.getInstance();
+        
         // 1. appName 우선순위: 시스템 프로퍼티 > 환경변수 > 기본값
         String sysAppName = System.getProperty("app.name");
         String envAppName = System.getenv("APP_NAME");
@@ -52,7 +55,7 @@ public class LogFileManager {
         String overwriteProp = System.getProperty("log.overwrite", "false");
         this.overwrite = Boolean.parseBoolean(overwriteProp);
 
-        this.maxFileSize = 10 * 1024 * 1024; // 10MB
+        this.maxFileSize = parseSize(config.getLogFileMaxSize());
         initializeLogFile();
         scheduleCompression();
         scheduleCleanup();
@@ -73,18 +76,32 @@ public class LogFileManager {
             .orElse("unknown");
     }
     
+    private String getCurrentFileName() {
+        String baseName = config.getLogFileName();
+        // 확장자 분리
+        String nameWithoutExt = baseName;
+        String extension = "";
+        int dotIndex = baseName.lastIndexOf('.');
+        if (dotIndex > 0) {
+            nameWithoutExt = baseName.substring(0, dotIndex);
+            extension = baseName.substring(dotIndex);
+        }
+
+        // 기본 형식: application-2024-03-21.log
+        return String.format("%s-%s%s", 
+            nameWithoutExt,
+            LocalDateTime.now().format(FILE_DATE_FORMATTER),
+            extension);
+    }
+    
     private void initializeLogFile() {
-        String logPath = System.getProperty(LoggingProperties.LOG_FILE_PATH, LoggingProperties.DEFAULT_LOG_FILE_PATH);
-        
         try {
-            Path logDir = Paths.get(logPath);
+            Path logDir = config.getLogDirectory();
             if (!Files.exists(logDir)) {
                 Files.createDirectories(logDir);
             }
 
-            // 현재 날짜로 파일명 생성
-            String date = LocalDateTime.now().format(FILE_DATE_FORMATTER);
-            String fileName = String.format("%s_%s_%d.log", appName, date, currentFileNumber);
+            String fileName = getCurrentFileName();
             currentLogFile = logDir.resolve(fileName);
             
             if (overwrite) {
@@ -142,19 +159,21 @@ public class LogFileManager {
     }
     
     private boolean shouldRotateLogFile() {
-        String maxSizeStr = System.getProperty(LoggingProperties.LOG_FILE_MAX_SIZE,
-                LoggingProperties.DEFAULT_LOG_FILE_MAX_SIZE);
-        long maxSize = parseSize(maxSizeStr);
-        return currentFileSize >= maxSize;
+        return currentFileSize >= maxFileSize;
     }
     
     private void rotateLogFile() throws IOException {
-        // 다음 파일 번호 증가
-        currentFileNumber++;
+        // 현재 날짜 확인
+        String currentDate = LocalDateTime.now().format(FILE_DATE_FORMATTER);
+        String currentFileName = currentLogFile.getFileName().toString();
         
-        // 새로운 파일명 생성
-        String date = LocalDateTime.now().format(FILE_DATE_FORMATTER);
-        String newFileName = String.format("%s_%s_%d.log", appName, date, currentFileNumber);
+        // 현재 파일이 오늘 날짜의 파일이면 회전하지 않음
+        if (currentFileName.contains(currentDate)) {
+            return;
+        }
+        
+        // 새로운 날짜의 파일 생성
+        String newFileName = getCurrentFileName();
         Path newLogFile = currentLogFile.getParent().resolve(newFileName);
         
         if (overwrite) {
@@ -202,10 +221,7 @@ public class LogFileManager {
     
     public void cleanupOldLogs() {
         try {
-            String retentionDaysStr = System.getProperty(LoggingProperties.LOG_FILE_RETENTION_DAYS,
-                    LoggingProperties.DEFAULT_LOG_FILE_RETENTION_DAYS);
-            int retentionDays = Integer.parseInt(retentionDaysStr);
-            
+            int retentionDays = Integer.parseInt(config.getLogFileRetentionDays());
             LocalDateTime cutoffDate = LocalDateTime.now().minusDays(retentionDays);
             
             List<Path> oldFiles = Files.list(currentLogFile.getParent())
@@ -245,12 +261,10 @@ public class LogFileManager {
     }
     
     private void scheduleCompression() {
-        String unit = System.getProperty(LoggingProperties.LOG_FILE_COMPRESSION_UNIT,
-                LoggingProperties.DEFAULT_LOG_FILE_COMPRESSION_UNIT);
-        String value = System.getProperty(LoggingProperties.LOG_FILE_COMPRESSION_VALUE,
-                LoggingProperties.DEFAULT_LOG_FILE_COMPRESSION_VALUE);
-        
+        String unit = config.getLogFileCompressionUnit();
+        String value = config.getLogFileCompressionValue();
         long period = parseCompressionPeriod(unit, value);
+        
         scheduler.scheduleAtFixedRate(this::compressLogFiles, period, period, TimeUnit.MILLISECONDS);
     }
     
@@ -259,16 +273,16 @@ public class LogFileManager {
     }
     
     private long parseCompressionPeriod(String unit, String value) {
-        int period = Integer.parseInt(value);
+        int val = Integer.parseInt(value);
         switch (unit.toUpperCase()) {
             case "DAY":
-                return TimeUnit.DAYS.toMillis(period);
+                return TimeUnit.DAYS.toMillis(val);
             case "WEEK":
-                return TimeUnit.DAYS.toMillis(period * 7);
+                return TimeUnit.DAYS.toMillis(val * 7);
             case "MONTH":
-                return TimeUnit.DAYS.toMillis(period * 30);
+                return TimeUnit.DAYS.toMillis(val * 30);
             default:
-                return TimeUnit.DAYS.toMillis(1);
+                throw new IllegalArgumentException("Invalid compression unit: " + unit);
         }
     }
     
@@ -278,10 +292,11 @@ public class LogFileManager {
             return Long.parseLong(sizeStr.substring(0, sizeStr.length() - 2)) * 1024 * 1024;
         } else if (sizeStr.endsWith("KB")) {
             return Long.parseLong(sizeStr.substring(0, sizeStr.length() - 2)) * 1024;
-        } else if (sizeStr.endsWith("B")) {
-            return Long.parseLong(sizeStr.substring(0, sizeStr.length() - 1));
+        } else if (sizeStr.endsWith("GB")) {
+            return Long.parseLong(sizeStr.substring(0, sizeStr.length() - 2)) * 1024 * 1024 * 1024;
+        } else {
+            return Long.parseLong(sizeStr);
         }
-        return Long.parseLong(sizeStr);
     }
     
     public void addEventHandler(LogEventHandler handler) {
@@ -294,28 +309,36 @@ public class LogFileManager {
     
     private void notifyLogRotated(Path rotatedFile) {
         LogFileEvent event = new LogFileEvent(rotatedFile);
-        eventHandlers.forEach(handler -> handler.onLogRotated(event));
+        for (LogEventHandler handler : eventHandlers) {
+            handler.onLogRotated(event);
+        }
     }
     
     private void notifyLogCompressed(Path compressedFile) {
         LogFileEvent event = new LogFileEvent(compressedFile);
-        eventHandlers.forEach(handler -> handler.onLogCompressed(event));
+        for (LogEventHandler handler : eventHandlers) {
+            handler.onLogCompressed(event);
+        }
     }
     
     private void notifyLogArchived(Path archivedFile) {
         LogFileEvent event = new LogFileEvent(archivedFile);
-        eventHandlers.forEach(handler -> handler.onLogArchived(event));
+        for (LogEventHandler handler : eventHandlers) {
+            handler.onLogArchived(event);
+        }
     }
     
     private void notifyLogDeleted(Path deletedFile) {
         LogFileEvent event = new LogFileEvent(deletedFile);
-        eventHandlers.forEach(handler -> handler.onLogDeleted(event));
+        for (LogEventHandler handler : eventHandlers) {
+            handler.onLogDeleted(event);
+        }
     }
     
     public void shutdown() {
         scheduler.shutdown();
         try {
-            if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+            if (!scheduler.awaitTermination(60, TimeUnit.SECONDS)) {
                 scheduler.shutdownNow();
             }
         } catch (InterruptedException e) {
@@ -330,7 +353,6 @@ public class LogFileManager {
                 Files.createDirectories(logDir);
             }
             currentLogFile = logDir.resolve(currentLogFile.getFileName());
-            initializeLogFile();
         } catch (IOException e) {
             throw new RuntimeException("Failed to set log directory", e);
         }

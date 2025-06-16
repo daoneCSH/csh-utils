@@ -21,32 +21,40 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Properties;
+import java.time.LocalDateTime;
+import java.util.regex.Pattern;
 
+/**
+ * 로그 데이터 저장을 담당하는 클래스
+ */
 public class LogStorage implements Runnable {
     private static final int QUEUE_CAPACITY = 10000;
     private static final int BATCH_SIZE = 100;
     private static final long FLUSH_INTERVAL = 1000; // milliseconds
+    private static final DateTimeFormatter FILE_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final Pattern INDEX_PATTERN = Pattern.compile(".*-(\\d+)\\.log$");
+    private static LogStorage INSTANCE;
 
-    private final BlockingQueue<LogMessage> queue;
+    private final BlockingQueue<String> logQueue;
     private final AtomicBoolean running;
     private final Thread worker;
     private final LoggingConfig config;
     private final LogFormat formatter;
-    private final AtomicInteger currentFileIndex;
+    private final AtomicInteger currentIndex = new AtomicInteger(1);
     private BufferedWriter writer;
     private LocalDate currentDate;
     private long currentFileSize;
     private Path currentLogFile;
     private final boolean overwrite;
     private final String appName;
+    private final Object writeLock = new Object();
 
-    public LogStorage() {
-        this.queue = new LinkedBlockingQueue<>(QUEUE_CAPACITY);
+    private LogStorage() {
+        this.logQueue = new LinkedBlockingQueue<>();
         this.running = new AtomicBoolean(true);
         this.worker = new Thread(this, "LogStorage");
         this.config = LoggingConfig.getInstance();
         this.formatter = new LogFormat(config.getLogPattern());
-        this.currentFileIndex = new AtomicInteger(0);
         this.currentDate = LocalDate.now();
         
         // 1. appName 우선순위: 시스템 프로퍼티 > 환경변수 > 기본값
@@ -64,6 +72,13 @@ public class LogStorage implements Runnable {
         worker.start();
     }
 
+    public static synchronized LogStorage getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new LogStorage();
+        }
+        return INSTANCE;
+    }
+
     private String getDefaultAppName() {
         return SystemProperties.getProperty("app.name")
             .checkSystemProperty()
@@ -74,56 +89,53 @@ public class LogStorage implements Runnable {
 
     private void initializeWriter() {
         try {
-            Path logDir = Paths.get(config.getLogDirectory().toString());
+            Path logDir = config.getLogDirectory();
             if (!Files.exists(logDir)) {
                 Files.createDirectories(logDir);
             }
 
             String fileName = getCurrentFileName();
-            currentLogFile = logDir.resolve(fileName);
+            Path logFile = logDir.resolve(fileName);
             
-            // 파일이 존재하지 않으면 새로 생성
-            if (!Files.exists(currentLogFile)) {
-                Files.createFile(currentLogFile);
-                currentFileSize = 0;
+            if (overwrite) {
+                if (Files.exists(logFile)) {
+                    Files.delete(logFile);
+                }
+                Files.createFile(logFile);
             } else {
-                currentFileSize = Files.size(currentLogFile);
+                if (!Files.exists(logFile)) {
+                    Files.createFile(logFile);
+                }
             }
             
-            if (overwrite && Files.exists(currentLogFile)) {
-                Files.delete(currentLogFile);
-            }
-            writer = new BufferedWriter(new FileWriter(currentLogFile.toFile(), !overwrite));
+            writer = new BufferedWriter(new FileWriter(logFile.toFile(), true));
+            currentFileSize = Files.size(logFile);
         } catch (IOException e) {
-            System.err.println("로그 파일 초기화 실패: " + e.getMessage());
-            throw new RuntimeException("로그 파일 초기화 실패", e);
+            throw new RuntimeException("Failed to initialize log writer: " + e.getMessage(), e);
         }
     }
 
     private String getCurrentFileName() {
-        LocalDate today = LocalDate.now();
-        if (!today.equals(currentDate)) {
-            currentDate = today;
-            currentFileIndex.set(0);
+        String baseName = config.getLogFileName();
+        String extension = "";
+        int dotIndex = baseName.lastIndexOf('.');
+        if (dotIndex > 0) {
+            extension = baseName.substring(dotIndex);
         }
 
-        String baseName = config.getLogFileName();
-        if (currentFileIndex.get() == 0) {
-            return baseName;
-        }
-        return String.format("%s.%s.%d", baseName, 
-            currentDate.format(DateTimeFormatter.ISO_DATE), 
-            currentFileIndex.get());
+        return String.format("%s-%s-%d%s", 
+            baseName,
+            LocalDateTime.now().format(FILE_DATE_FORMATTER),
+            currentIndex.get(),
+            extension);
     }
 
-    public void store(LogMessage message) {
-        if (!queue.offer(message)) {
-            // 큐가 가득 찼을 때 대기하지 않고 즉시 처리
-            try {
-                writeLog(message);
-            } catch (Exception e) {
-                System.err.println("로그 저장 실패: " + e.getMessage());
-            }
+    public void writeLog(String message) {
+        try {
+            logQueue.put(message);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Failed to write log", e);
         }
     }
 
@@ -143,20 +155,31 @@ public class LogStorage implements Runnable {
 
     private void processBatch() {
         for (int i = 0; i < BATCH_SIZE; i++) {
-            LogMessage message = queue.poll();
-            if (message == null) {
+            String message = null;
+            try {
+                message = logQueue.take();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 break;
             }
-            writeLog(message);
+            processLog(message);
         }
+        // 배치 처리 후에도 즉시 flush
         flush();
     }
 
-    private void writeLog(LogMessage message) {
+    private void processLog(String message) {
         try {
-            String formattedMessage = formatter.format(message);
-            writer.write(formattedMessage);
-            currentFileSize += formattedMessage.getBytes().length;
+            synchronized (writeLock) {
+                if (writer == null) {
+                    initializeWriter();
+                }
+                
+                writer.write(message);
+                writer.newLine();
+                writer.flush();
+            }
+            currentFileSize += message.getBytes().length;
 
             if (shouldRotate()) {
                 rotateFile();
@@ -172,34 +195,39 @@ public class LogStorage implements Runnable {
     }
 
     private void rotateFile() {
-        try {
-            writer.close();
-            
-            // 이전 파일 이름 변경
-            String newFileName = String.format("%s.%s.%d", 
-                config.getLogFileName(),
-                currentDate.format(DateTimeFormatter.ISO_DATE),
-                currentFileIndex.get());
-            
-            Path newPath = currentLogFile.getParent().resolve(newFileName);
-            Files.move(currentLogFile, newPath);
-            
-            currentFileIndex.incrementAndGet();
-            initializeWriter();
-        } catch (IOException e) {
-            System.err.println("로그 파일 로테이션 실패: " + e.getMessage());
-            throw new RuntimeException("로그 파일 로테이션 실패", e);
+        synchronized (writeLock) {
+            try {
+                if (writer != null) {
+                    writer.close();
+                    writer = null;
+                }
+                
+                String currentDate = LocalDateTime.now().format(FILE_DATE_FORMATTER);
+                String currentFileName = getCurrentFileName();
+                
+                if (currentFileName.contains(currentDate)) {
+                    currentIndex.incrementAndGet();
+                } else {
+                    currentIndex.set(1);
+                }
+                
+                initializeWriter();
+            } catch (IOException e) {
+                System.err.println("로그 파일 로테이션 실패: " + e.getMessage());
+                throw new RuntimeException("로그 파일 로테이션 실패", e);
+            }
         }
     }
 
     private void flush() {
-        try {
-            if (writer != null) {
-                writer.flush();
+        synchronized (writeLock) {
+            try {
+                if (writer != null) {
+                    writer.flush();
+                }
+            } catch (IOException e) {
+                System.err.println("로그 flush 실패: " + e.getMessage());
             }
-        } catch (IOException e) {
-            System.err.println("로그 플러시 실패: " + e.getMessage());
-            throw new RuntimeException("로그 플러시 실패", e);
         }
     }
 
@@ -225,11 +253,18 @@ public class LogStorage implements Runnable {
         }
         flush();
         try {
-            if (writer != null) {
-                writer.close();
+            synchronized (writeLock) {
+                if (writer != null) {
+                    writer.close();
+                    writer = null;
+                }
             }
         } catch (IOException e) {
             System.err.println("로그 파일 닫기 실패: " + e.getMessage());
         }
+    }
+
+    public Path getCurrentLogFile() {
+        return currentLogFile;
     }
 } 

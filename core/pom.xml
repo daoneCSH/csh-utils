@@ -12,7 +12,6 @@
     <artifactId>core</artifactId>
     <name>core</name>
     <description>CSH Utils Core Module</description>
-    <version>1.0.1</version>
 
     <dependencies>
         <!-- Testing -->

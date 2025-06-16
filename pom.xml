@@ -34,6 +34,13 @@
         <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
         <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
+        
+        <!-- Module Versions -->
+        <core.version>1.0.1</core.version>
+        <logging.version>1.0.2</logging.version>
+        <thread.version>1.0.0</thread.version>
+        <config.version>1.0.0</config.version>
+        <banner.version>1.0.1</banner.version>
     </properties>
 
     <dependencyManagement>
@@ -64,27 +71,27 @@
             <dependency>
                 <groupId>io.csh</groupId>
                 <artifactId>core</artifactId>
-                <version>1.0.1</version>
+                <version>${core.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.csh</groupId>
                 <artifactId>logging</artifactId>
-                <version>1.0.2</version>
+                <version>${logging.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.csh</groupId>
                 <artifactId>thread</artifactId>
-                <version>1.0.0</version>
+                <version>${thread.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.csh</groupId>
                 <artifactId>config</artifactId>
-                <version>1.0.0</version>
+                <version>${config.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.csh</groupId>
                 <artifactId>banner</artifactId>
-                <version>1.0.0</version>
+                <version>${banner.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -127,4 +134,17 @@
             <url>https://opensource.org/licenses/MIT</url>
         </license>
     </licenses>
+
+    <distributionManagement>
+        <repository>
+            <id>local-repository</id>
+            <name>Local Repository</name>
+            <url>file://${user.home}/.m2/repository</url>
+        </repository>
+        <snapshotRepository>
+            <id>local-repository</id>
+            <name>Local Repository</name>
+            <url>file://${user.home}/.m2/repository</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project> 

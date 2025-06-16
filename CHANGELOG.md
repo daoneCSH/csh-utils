@@ -126,6 +126,23 @@
 - 초기 버전 릴리즈
 - 기본 설정 관리 기능
 
+## [1.0.1] - 2024-03-21
+
+### Banner 모듈
+#### 개선사항
+- Facade 패턴 적용
+  - `AppBanner` 클래스 추가로 사용성 개선
+  - 단일 import로 배너 기능 사용 가능
+  - 기본 테마, 커스텀 테마, 사용자 정의 배너 지원
+- API 개선
+  - `printDefault()`: 기본 테마로 배너 출력
+  - `print(BannerTheme)`: 지정된 테마로 배너 출력
+  - `printCustom(BannerInfo, BannerConfig)`: 사용자 정의 배너 출력
+- 내부 구현 개선
+  - `BannerConfig` 빌더 패턴 적용
+  - `AppBannerUtil`과 `ConsoleBannerRenderer` 연동 개선
+  - 배너 정보 자동 감지 기능 강화
+
 ## 향후 계획
 
 ### Banner 모듈
