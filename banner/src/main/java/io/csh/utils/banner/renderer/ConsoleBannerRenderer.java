@@ -66,6 +66,11 @@ public class ConsoleBannerRenderer implements BannerRenderer {
             banner.append("Version: ").append(applyTheme(info.getVersion())).append("\n");
         }
 
+        // csh.utils 버전 표시
+        if (config.isShowVersion() && info.getCshUtilsVersion() != null) {
+            banner.append("CSH Utils Version: ").append(applyTheme(info.getCshUtilsVersion())).append("\n");
+        }
+
         // 빌드 정보 표시
         if (config.isShowBuildInfo() && info.getBuildTime() != null) {
             banner.append("Build Time: ").append(applyTheme(info.getBuildTime())).append("\n");

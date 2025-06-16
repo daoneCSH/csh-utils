@@ -1,6 +1,8 @@
 package io.csh.utils.banner.model;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 /**
  * 배너에 표시될 정보를 담는 클래스입니다.
@@ -19,6 +21,7 @@ import java.time.LocalDateTime;
  * <p>시스템 정보는 생성자에서 자동으로 초기화됩니다.
  */
 public class BannerInfo {
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private String appName;
     private String version;
     private String buildTime;
@@ -27,17 +30,19 @@ public class BannerInfo {
     private String osVersion;
     private String osArch;
     private String customMessage;
+    private String cshUtilsVersion;
 
     /**
      * BannerInfo 인스턴스를 생성합니다.
      * 시스템 정보(Java 버전, OS 정보 등)는 자동으로 초기화됩니다.
      */
     public BannerInfo() {
-        this.buildTime = LocalDateTime.now().toString();
+        this.buildTime = LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DATE_FORMATTER);
         this.javaVersion = System.getProperty("java.version");
         this.osName = System.getProperty("os.name");
         this.osVersion = System.getProperty("os.version");
         this.osArch = System.getProperty("os.arch");
+        this.cshUtilsVersion = "1.0.0"; // csh.utils 버전
     }
 
     /**
@@ -201,6 +206,24 @@ public class BannerInfo {
     }
 
     /**
+     * csh.utils 버전을 반환합니다.
+     *
+     * @return csh.utils 버전
+     */
+    public String getCshUtilsVersion() {
+        return cshUtilsVersion;
+    }
+
+    /**
+     * csh.utils 버전을 설정합니다.
+     *
+     * @param cshUtilsVersion csh.utils 버전
+     */
+    public void setCshUtilsVersion(String cshUtilsVersion) {
+        this.cshUtilsVersion = cshUtilsVersion;
+    }
+
+    /**
      * 다른 BannerInfo 객체의 정보로 현재 객체를 업데이트합니다.
      * null이 아닌 필드만 업데이트됩니다.
      *
@@ -235,6 +258,9 @@ public class BannerInfo {
         }
         if (info.getCustomMessage() != null) {
             this.customMessage = info.getCustomMessage();
+        }
+        if (info.getCshUtilsVersion() != null) {
+            this.cshUtilsVersion = info.getCshUtilsVersion();
         }
     }
 } 
