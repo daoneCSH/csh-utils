@@ -6,11 +6,11 @@
     <parent>
         <groupId>io.csh</groupId>
         <artifactId>csh-utils</artifactId>
-        <version>${project.version}</version>
+        <version>1.0.0</version>
     </parent>
 
     <artifactId>config</artifactId>
-    <version>${config.version}</version>
+    <version>1.0.0</version>
     <name>config</name>
     <description>CSH Utils Config Module</description>
 
