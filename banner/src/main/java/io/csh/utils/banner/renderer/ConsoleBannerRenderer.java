@@ -3,6 +3,8 @@ package io.csh.utils.banner.renderer;
 import io.csh.utils.banner.core.BannerConfig;
 import io.csh.utils.banner.model.BannerInfo;
 
+import java.util.List;
+
 /**
  * 콘솔에 배너를 출력하는 렌더러입니다.
  * ANSI 색상 코드를 사용하여 테마를 적용하고, 설정에 따라 다양한 정보를 표시합니다.
@@ -97,18 +99,23 @@ public class ConsoleBannerRenderer implements BannerRenderer {
                 maxWidth = width;
             }
         }
-        // 상단/하단 구분선 생성
-        String border = repeatChar('━', maxWidth);
 
-        // 출력
-        StringBuilder banner = new StringBuilder();
-        banner.append(border).append("\n");
+        renderBannerContent(content, List.of(lines), maxWidth);
+
+        System.out.println(content.toString());
+    }
+
+    private void renderBannerContent(StringBuilder result, List<String> lines, int maxWidth) {
+        // 상단 구분선
+        result.append("┌").append("─".repeat(maxWidth)).append("\n");
+
+        // ASCII 아트와 메시지 출력
         for (String line : lines) {
-            banner.append(line).append("\n");
+            result.append("│ ").append(line).append(" ".repeat(maxWidth - getDisplayWidth(line))).append("\n");
         }
-        banner.append(border);
 
-        System.out.println(banner.toString());
+        // 하단 구분선
+        result.append("└").append("─".repeat(maxWidth)).append("\n");
     }
 
     // 콘솔에서 실제 표시되는 폭을 계산 (간단 버전)
