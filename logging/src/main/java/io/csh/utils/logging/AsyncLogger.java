@@ -1,71 +1,52 @@
 package io.csh.utils.logging;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * 비동기 로깅을 위한 클래스
- */
-public class AsyncLogger {
-    private static ExecutorService executor = Executors.newSingleThreadExecutor();
+public class AsyncLogger extends Logger implements Runnable {
+    private static final int QUEUE_CAPACITY = 1000;
+    private final BlockingQueue<LogMessage> queue;
+    private final AtomicBoolean running;
+    private final Thread worker;
 
-    public static void initialize() {
-        if (executor.isShutdown()) {
-            executor = Executors.newSingleThreadExecutor();
+    public AsyncLogger(String name) {
+        super(name);
+        this.queue = new LinkedBlockingQueue<>(QUEUE_CAPACITY);
+        this.running = new AtomicBoolean(true);
+        this.worker = new Thread(this, "AsyncLogger-" + name);
+        this.worker.start();
+    }
+
+    @Override
+    public void run() {
+        while (running.get()) {
+            try {
+                LogMessage message = queue.take();
+                super.log(message.getLevel(), message.getMessage(), message.getThrowable());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
         }
     }
 
-    public static void debug(String message) {
-        executor.submit(() -> {
-            try {
-                Logger.debug(message);
-            } catch (Exception e) {
-                System.err.println("Failed to write async debug log: " + e.getMessage());
-            }
-        });
+    @Override
+    protected void log(LogLevel level, String message, Throwable throwable) {
+        if (!this.level.isEnabled(level)) {
+            return;
+        }
+
+        LogMessage logMessage = new LogMessage(level, name, message, throwable);
+        queue.offer(logMessage);
+
+        if (level == LogLevel.FATAL) {
+            // TODO: API 연동 구현
+        }
     }
 
-    public static void info(String message) {
-        executor.submit(() -> {
-            try {
-                Logger.info(message);
-            } catch (Exception e) {
-                System.err.println("Failed to write async info log: " + e.getMessage());
-            }
-        });
-    }
-
-    public static void warn(String message) {
-        executor.submit(() -> {
-            try {
-                Logger.warn(message);
-            } catch (Exception e) {
-                System.err.println("Failed to write async warn log: " + e.getMessage());
-            }
-        });
-    }
-
-    public static void error(String message) {
-        executor.submit(() -> {
-            try {
-                Logger.error(message);
-            } catch (Exception e) {
-                System.err.println("Failed to write async error log: " + e.getMessage());
-            }
-        });
-    }
-
-    public static void error(String message, Throwable t) {
-        executor.submit(() -> {
-            try {
-                Logger.error(message, t);
-            } catch (Exception e) {
-                System.err.println("Failed to write async error log: " + e.getMessage());
-            }
-        });
-    }
-
-    public static void shutdown() {
-        executor.shutdown();
+    public void shutdown() {
+        running.set(false);
+        worker.interrupt();
     }
 } 

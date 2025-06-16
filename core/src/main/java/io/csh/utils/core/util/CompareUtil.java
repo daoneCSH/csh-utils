@@ -1,7 +1,5 @@
 package io.csh.utils.core.util;
 
-import org.apache.commons.lang3.ObjectUtils;
-
 /**
  * 비교 관련 유틸리티 클래스
  */
@@ -19,7 +17,16 @@ public final class CompareUtil {
      * @return 비교 결과 (o1 &lt; o2: -1, o1 == o2: 0, o1 &gt; o2: 1)
      */
     public static <T extends Comparable<T>> int compare(T o1, T o2) {
-        return ObjectUtils.compare(o1, o2);
+        if (o1 == o2) {
+            return 0;
+        }
+        if (o1 == null) {
+            return -1;
+        }
+        if (o2 == null) {
+            return 1;
+        }
+        return o1.compareTo(o2);
     }
 
     /**
@@ -32,7 +39,16 @@ public final class CompareUtil {
      * @return 비교 결과 (o1 &lt; o2: -1, o1 == o2: 0, o1 &gt; o2: 1)
      */
     public static <T extends Comparable<T>> int compare(T o1, T o2, boolean nullGreater) {
-        return ObjectUtils.compare(o1, o2, nullGreater);
+        if (o1 == o2) {
+            return 0;
+        }
+        if (o1 == null) {
+            return nullGreater ? 1 : -1;
+        }
+        if (o2 == null) {
+            return nullGreater ? -1 : 1;
+        }
+        return o1.compareTo(o2);
     }
 
     /**

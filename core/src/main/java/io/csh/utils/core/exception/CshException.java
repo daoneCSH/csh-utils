@@ -2,6 +2,9 @@ package io.csh.utils.core.exception;
 
 /**
  * CSH 유틸리티의 기본 예외 클래스
+ * 
+ * 이 클래스는 CSH 유틸리티에서 발생하는 모든 예외의 기본 클래스로 사용됩니다.
+ * 다양한 생성자를 통해 예외 메시지와 원인을 포함할 수 있습니다.
  */
 public class CshException extends RuntimeException {
     private static final long serialVersionUID = 1L;

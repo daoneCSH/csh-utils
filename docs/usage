@@ -221,3 +221,155 @@ log.directory=logs
 - 로그 파일 크기: 10MB
 - 백업 파일 수: 5개
 - 로그 디렉토리: logs 
+
+# 로깅 시스템 사용 가이드
+
+## 1. 기본 설정
+
+### 1.1 로그 파일 관리
+```properties
+# 로그 파일 경로
+logging.file.path=logs
+
+# 로그 파일 이름
+logging.file.name=application.log
+
+# 로그 파일 크기 제한
+logging.file.max-size=10MB
+logging.file.max-total-size=1GB
+
+# 로그 보관 기간
+logging.file.retention-days=365
+
+# 로그 압축 설정
+logging.file.compression.unit=WEEK
+logging.file.compression.value=1
+logging.file.compression.format=gz
+```
+
+### 1.2 로그 패턴
+```properties
+# 기본 로그 패턴
+logging.pattern=%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+```
+
+## 2. 로그 파일 관리
+
+### 2.1 파일 크기 제한
+- 단일 파일 최대 크기: 10MB (기본값)
+- 전체 로그 파일 최대 크기: 1GB (기본값)
+- 크기 초과 시 자동으로 새 파일 생성
+
+### 2.2 압축 정책
+- 압축 단위 선택: 주별(WEEK) 또는 월별(MONTH)
+- 기본값: 주별 압축 (1주일)
+- 압축 형식: gz (기본값)
+
+### 2.3 보관 정책
+- 기본 보관 기간: 1년
+- 보관 기간 초과 파일 자동 삭제
+
+## 3. 설정 커스터마이징
+
+### 3.1 프로퍼티 파일
+- `application.properties` 또는 `application.yml`에 설정 추가
+- 시스템 프로퍼티로도 설정 가능
+
+### 3.2 런타임 설정 변경
+```java
+LoggingConfig config = LoggingConfig.getInstance();
+config.setLogFileMaxSize("20MB");
+config.setLogFileRetentionDays(180);
+```
+
+## 4. 이벤트 처리
+
+### 4.1 이벤트 리스너 등록
+```java
+public class CustomLogEventListener implements LogEventHandler {
+    @Override
+    public void onLogRotated(LogFileEvent event) {
+        // 로그 파일 로테이션 처리
+    }
+    
+    @Override
+    public void onLogCompressed(LogFileEvent event) {
+        // 로그 파일 압축 처리
+    }
+    
+    @Override
+    public void onLogArchived(LogFileEvent event) {
+        // 로그 파일 보관 처리
+    }
+    
+    @Override
+    public void onLogDeleted(LogFileEvent event) {
+        // 로그 파일 삭제 처리
+    }
+}
+```
+
+### 4.2 이벤트 리스너 등록
+```java
+LogFileManager manager = LogFileManager.getInstance();
+manager.addEventHandler(new CustomLogEventListener());
+```
+
+## 5. 모니터링 연동
+
+### 5.1 이벤트 핸들러 구현
+```java
+public class MonitoringEventHandler implements LogEventHandler {
+    private final MonitoringClient monitoringClient;
+    
+    @Override
+    public void onLogRotated(LogFileEvent event) {
+        monitoringClient.sendEvent("LOG_ROTATED", event);
+    }
+    
+    // 다른 이벤트 처리 메서드 구현
+}
+```
+
+### 5.2 알림 설정
+```java
+public class AlertEventHandler implements LogEventHandler {
+    private final AlertService alertService;
+    
+    @Override
+    public void onLogDeleted(LogFileEvent event) {
+        if (isImportantLog(event)) {
+            alertService.sendAlert("Important log file deleted: " + event.getFileName());
+        }
+    }
+}
+```
+
+## 6. 문제 해결
+
+### 6.1 일반적인 문제
+1. 로그 파일이 생성되지 않는 경우
+   - 로그 디렉토리 권한 확인
+   - 디스크 공간 확인
+   - 로그 파일 경로 설정 확인
+
+2. 로그 파일이 너무 큰 경우
+   - `logging.file.max-size` 설정 확인
+   - 로그 레벨 조정
+   - 불필요한 로그 제거
+
+3. 디스크 공간 부족
+   - 보관 기간 확인
+   - 압축 설정 확인
+   - 로그 파일 정리
+
+### 6.2 성능 문제
+1. 로깅 성능 저하
+   - 비동기 로깅 사용
+   - 로그 레벨 조정
+   - 로그 패턴 단순화
+
+2. 디스크 I/O 문제
+   - 배치 처리 설정 조정
+   - 압축 주기 조정
+   - 로그 파일 경로를 별도 디스크로 변경 

@@ -4,6 +4,8 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * 문자열 관련 유틸리티 클래스
+ * 
+ * 이 클래스는 문자열의 null 체크, 공백 체크, 문자열 변환 등 문자열 관련 유틸리티 메서드를 제공합니다.
  */
 public final class StringUtil {
     private StringUtil() {
@@ -11,23 +13,57 @@ public final class StringUtil {
     }
 
     /**
-     * 문자열이 null이거나 빈 문자열인지 확인
+     * 문자열이 null이거나 비어있는지 확인
      *
      * @param str 확인할 문자열
-     * @return null이거나 빈 문자열이면 true
+     * @return null이거나 비어있으면 true
      */
     public static boolean isEmpty(String str) {
         return str == null || str.isEmpty();
     }
 
     /**
-     * 문자열이 null이 아니고 빈 문자열이 아닌지 확인
+     * 문자열이 null이거나 공백인지 확인
      *
      * @param str 확인할 문자열
-     * @return null이 아니고 빈 문자열이 아니면 true
+     * @return null이거나 공백이면 true
      */
-    public static boolean isNotEmpty(String str) {
-        return !isEmpty(str);
+    public static boolean isBlank(String str) {
+        return str == null || str.trim().isEmpty();
+    }
+
+    /**
+     * 문자열이 null이면 빈 문자열 반환
+     *
+     * @param str 확인할 문자열
+     * @return null이면 빈 문자열, 아니면 원본 문자열
+     */
+    public static String nullToEmpty(String str) {
+        return str == null ? "" : str;
+    }
+
+    /**
+     * 빈 문자열이면 null 반환
+     *
+     * @param str 확인할 문자열
+     * @return 빈 문자열이면 null, 아니면 원본 문자열
+     */
+    public static String emptyToNull(String str) {
+        return isEmpty(str) ? null : str;
+    }
+
+    /**
+     * 문자열을 지정된 길이로 자르고 말줄임표 추가
+     *
+     * @param str 원본 문자열
+     * @param maxLength 최대 길이
+     * @return 잘린 문자열
+     */
+    public static String truncate(String str, int maxLength) {
+        if (str == null || str.length() <= maxLength) {
+            return str;
+        }
+        return str.substring(0, maxLength - 3) + "...";
     }
 
     /**

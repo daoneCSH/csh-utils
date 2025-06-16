@@ -1,9 +1,5 @@
 package io.csh.utils.core.util;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -11,6 +7,8 @@ import java.util.List;
 
 /**
  * 파일 관련 유틸리티 클래스
+ * 
+ * 이 클래스는 파일 존재 여부 확인, 디렉토리 확인, 파일 읽기/쓰기 등 파일 관련 유틸리티 메서드를 제공합니다.
  */
 public final class FileUtil {
     private FileUtil() {

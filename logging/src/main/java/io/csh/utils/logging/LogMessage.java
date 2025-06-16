@@ -1,56 +1,57 @@
 package io.csh.utils.logging;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
-/**
- * 비동기 로깅을 위한 로그 메시지 클래스
- */
 public class LogMessage {
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+    private final LocalDateTime timestamp;
     private final LogLevel level;
+    private final String loggerName;
     private final String message;
     private final Throwable throwable;
-    private final LocalDateTime timestamp;
-    private final String threadName;
-
-    public LogMessage(LogLevel level, String message, Throwable throwable) {
+    
+    public LogMessage(LogLevel level, String loggerName, String message) {
+        this(level, loggerName, message, null);
+    }
+    
+    public LogMessage(LogLevel level, String loggerName, String message, Throwable throwable) {
+        this.timestamp = LocalDateTime.now();
         this.level = level;
+        this.loggerName = loggerName;
         this.message = message;
         this.throwable = throwable;
-        this.timestamp = LocalDateTime.now();
-        this.threadName = Thread.currentThread().getName();
     }
-
-    public LogLevel getLevel() {
-        return level;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public Throwable getThrowable() {
-        return throwable;
-    }
-
+    
     public LocalDateTime getTimestamp() {
         return timestamp;
     }
-
-    public String getThreadName() {
-        return threadName;
+    
+    public LogLevel getLevel() {
+        return level;
     }
-
+    
+    public String getLoggerName() {
+        return loggerName;
+    }
+    
+    public String getMessage() {
+        return message;
+    }
+    
+    public Throwable getThrowable() {
+        return throwable;
+    }
+    
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(timestamp).append(" [").append(threadName).append("] ")
-          .append(level).append(" - ")
-          .append(message);
-        
+        sb.append(formatter.format(timestamp))
+          .append(" [").append(Thread.currentThread().getName()).append("] ")
+          .append(level).append(" ").append(loggerName).append(" - ").append(message);
         if (throwable != null) {
-            sb.append("\n").append(throwable.toString());
+            sb.append("\n").append(throwable);
         }
-        
         return sb.toString();
     }
 } 

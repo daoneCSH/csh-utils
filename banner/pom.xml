@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>banner</artifactId>
+    <version>1.0.0</version>
     <name>Banner</name>
     <description>CSH Utils Banner Module - Provides banner utilities for CSH Utils</description>
 
