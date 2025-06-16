@@ -1,6 +1,6 @@
 # CSH Utils Changelog
 
-## [1.0.0] - 2024-03-20
+## [1.0.0] - 2025-06-16
 
 ### Banner 모듈
 #### 추가된 기능
@@ -170,4 +170,52 @@
 ### Config 모듈
 - [ ] 설정 UI
 - [ ] 설정 버전 관리
-- [ ] 설정 마이그레이션 도구 
+- [ ] 설정 마이그레이션 도구
+
+## [1.0.0] - 2025-06-16
+
+### Added
+- Initial release of csh-utils library
+- Core module with basic utilities
+- Logging module with advanced logging capabilities
+- Thread module for thread management
+- Config module for configuration management
+- Banner module for application banner display
+
+### Changed
+- Banner module (v1.0.1)
+  - 날짜 형식을 "yyyy-MM-dd HH:mm:ss" 형식으로 변경
+  - 한국 시간대(Asia/Seoul) 적용
+  - csh.utils 버전 정보 표시 기능 추가
+
+### Fixed
+- Maven 버전 관리 문제 해결
+  - 모든 모듈의 version 태그를 상수로 변경
+  - 의존성 버전 충돌 해결
+
+## [Unreleased]
+
+### Added
+- None
+
+### Changed
+- None
+
+### Fixed
+- None
+
+## [1.0.2] - 2025-06-16
+
+### Banner Module
+- 테두리 기능을 상단/하단 구분선만 남기도록 단순화
+- BorderStyle enum 및 관련 API 제거
+- 폭 계산 로직 단순화 및 출력 안정성 개선
+- 한글, ASCII 아트 등 다양한 문자 출력 시 깨짐 현상 해결
+
+## [1.0.1] - 2025-06-15
+
+### Banner Module
+- 초기 릴리즈
+- 기본 배너 출력 기능 구현
+- ASCII 아트 지원
+- 테마 지원 

@@ -40,7 +40,7 @@
         <logging.version>1.0.2</logging.version>
         <thread.version>1.0.0</thread.version>
         <config.version>1.0.0</config.version>
-        <banner.version>1.0.1</banner.version>
+        <banner.version>1.0.2</banner.version>
     </properties>
 
     <dependencyManagement>
@@ -147,4 +147,17 @@
             <url>file://${user.home}/.m2/repository</url>
         </snapshotRepository>
     </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Central Repository</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+        <repository>
+            <id>local-repository</id>
+            <name>Local Repository</name>
+            <url>file://${user.home}/.m2/repository</url>
+        </repository>
+    </repositories>
 </project> 
