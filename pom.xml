@@ -6,7 +6,7 @@
 
     <groupId>io.csh</groupId>
     <artifactId>csh-utils</artifactId>
-    <version>1.0.0</version>
+    <version>${project.version}</version>
     <packaging>pom</packaging>
 
     <name>csh-utils</name>
@@ -21,6 +21,7 @@
     </modules>
 
     <properties>
+        <project.version>1.0.0</project.version>
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

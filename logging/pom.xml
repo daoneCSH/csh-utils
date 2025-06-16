@@ -7,10 +7,11 @@
     <parent>
         <groupId>io.csh</groupId>
         <artifactId>csh-utils</artifactId>
-        <version>1.0.0</version>
+        <version>${project.version}</version>
     </parent>
 
     <artifactId>logging</artifactId>
+    <version>${logging.version}</version>
     <description>Logging utilities for CSH Utils</description>
 
     <dependencies>

@@ -6,10 +6,11 @@
     <parent>
         <groupId>io.csh</groupId>
         <artifactId>csh-utils</artifactId>
-        <version>1.0.0</version>
+        <version>${project.version}</version>
     </parent>
 
     <artifactId>banner</artifactId>
+    <version>${banner.version}</version>
     <name>Banner</name>
     <description>CSH Utils Banner Module - Provides banner utilities for CSH Utils</description>
 
