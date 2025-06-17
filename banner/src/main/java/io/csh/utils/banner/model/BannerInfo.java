@@ -48,6 +48,18 @@ public class BannerInfo {
         this.osArch = System.getProperty("os.arch");
     }
 
+    public BannerInfo(String appName, String version, String buildTime, String javaVersion,
+                     String osName, String osVersion, String osArch, String customMessage) {
+        this.appName = appName;
+        this.version = version;
+        this.buildTime = buildTime;
+        this.javaVersion = javaVersion;
+        this.osName = osName;
+        this.osVersion = osVersion;
+        this.osArch = osArch;
+        this.customMessage = customMessage;
+    }
+
     /**
      * 애플리케이션 이름을 반환합니다.
      * 이 이름은 배너의 상단에 표시됩니다.

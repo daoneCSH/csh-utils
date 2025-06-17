@@ -1,8 +1,13 @@
 package io.csh.utils.banner.renderer;
 
 import io.csh.utils.banner.core.BannerConfig;
+import io.csh.utils.banner.core.BannerTheme;
+import io.csh.utils.banner.core.BorderStyle;
 import io.csh.utils.banner.model.BannerInfo;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,6 +30,8 @@ import java.util.List;
  */
 public class ConsoleBannerRenderer implements BannerRenderer {
     private final BannerConfig config;
+    private final List<String> lines = new ArrayList<>();
+    private final List<String> optionLines = new ArrayList<>();
 
     /**
      * ConsoleBannerRenderer를 생성합니다.
@@ -54,85 +61,77 @@ public class ConsoleBannerRenderer implements BannerRenderer {
             throw new IllegalArgumentException("BannerInfo cannot be null");
         }
 
-        StringBuilder content = new StringBuilder();
-
-        // ASCII 아트 표시
-        if (config.getAsciiArt() != null) {
-            content.append(config.getAsciiArt()).append("\n");
+        // ASCII 아트 추가
+        if (config.isShowAsciiArt() && config.getAsciiArt() != null) {
+            lines.add(config.getAsciiArt());
+            lines.add(""); // 빈 줄 추가
         }
 
-        // 로고 표시
-        if (config.isShowLogo() && info.getAppName() != null) {
-            content.append(info.getAppName()).append("\n\n");
+        // 옵션 정보 수집
+        // 애플리케이션 이름 추가
+        if (config.isShowLogo()) {
+            optionLines.add(info.getAppName());
         }
 
-        // 버전 정보 표시
-        if (config.isShowVersion() && info.getVersion() != null) {
-            content.append("Version: ").append(info.getVersion()).append("\n");
+        // 버전 정보 추가
+        if (config.isShowVersion()) {
+            optionLines.add("Version: " + info.getVersion());
         }
 
-        // 빌드 정보 표시
-        if (config.isShowBuildInfo() && info.getBuildTime() != null) {
-            content.append("Build Time: ").append(info.getBuildTime()).append("\n");
+        // 빌드 정보 추가
+        if (config.isShowBuildInfo()) {
+            optionLines.add("Build Time: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         }
 
-        // 시스템 정보 표시
+        // 시스템 정보 추가
         if (config.isShowSystemInfo()) {
-            content.append("Java Version: ").append(info.getJavaVersion()).append("\n");
-            content.append("OS: ")
-                   .append(info.getOsName()).append(" ")
-                   .append(info.getOsVersion()).append(" (")
-                   .append(info.getOsArch()).append(")\n");
+            optionLines.add("Java Version: " + System.getProperty("java.version"));
+            optionLines.add("OS: " + System.getProperty("os.name") + " " + System.getProperty("os.version") + " (" + System.getProperty("os.arch") + ")");
         }
 
-        // 커스텀 메시지 표시
-        if (info.getCustomMessage() != null) {
-            content.append("\n").append(info.getCustomMessage()).append("\n");
+        // 사용자 정의 메시지 추가
+        if (config.getCustomMessage() != null && !config.getCustomMessage().isEmpty()) {
+            optionLines.add("");
+            optionLines.add(config.getCustomMessage());
         }
 
-        // 각 줄을 배열로 분리
-        String[] lines = content.toString().split("\n");
-        int maxWidth = 0;
+        // ASCII 아트 출력
         for (String line : lines) {
-            int width = getDisplayWidth(line);
-            if (width > maxWidth) {
-                maxWidth = width;
+            System.out.println(line);
+        }
+
+        // 옵션 정보 출력
+        if (config.getBorderStyle() == BorderStyle.NONE) {
+            // 테두리 없이 출력
+            for (String line : optionLines) {
+                System.out.println(line);
             }
+        } else {
+            // 테두리와 함께 출력
+            int maxWidth = optionLines.stream()
+                    .mapToInt(String::length)
+                    .max()
+                    .orElse(0);
+
+            BorderStyle style = config.getBorderStyle();
+            String horizontalLine = String.valueOf(style.getHorizontal()).repeat(maxWidth + 4);
+
+            // 상단 테두리
+            System.out.println(style.getTopLeft() + horizontalLine + style.getTopRight());
+
+            // 내용
+            for (String line : optionLines) {
+                if (line.isEmpty()) {
+                    // 빈 줄은 그대로 출력
+                    System.out.println(style.getVertical() + " ".repeat(maxWidth + 4) + style.getVertical());
+                } else {
+                    String paddedLine = line + " ".repeat(maxWidth - line.length() + 1);
+                    System.out.println(style.getVertical() + " " + paddedLine + "  " + style.getVertical());
+                }
+            }
+
+            // 하단 테두리
+            System.out.println(style.getBottomLeft() + horizontalLine + style.getBottomRight());
         }
-
-        renderBannerContent(content, List.of(lines), maxWidth);
-
-        System.out.println(content.toString());
-    }
-
-    private void renderBannerContent(StringBuilder result, List<String> lines, int maxWidth) {
-        // 상단 구분선
-        result.append("┌").append("─".repeat(maxWidth)).append("\n");
-
-        // ASCII 아트와 메시지 출력
-        for (String line : lines) {
-            result.append("│ ").append(line).append(" ".repeat(maxWidth - getDisplayWidth(line))).append("\n");
-        }
-
-        // 하단 구분선
-        result.append("└").append("─".repeat(maxWidth)).append("\n");
-    }
-
-    // 콘솔에서 실제 표시되는 폭을 계산 (간단 버전)
-    private int getDisplayWidth(String s) {
-        int width = 0;
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            width += (Character.isIdeographic(c) || c > 0xFF) ? 2 : 1;
-        }
-        return width;
-    }
-
-    private String repeatChar(char c, int count) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < count; i++) {
-            sb.append(c);
-        }
-        return sb.toString();
     }
 } 

@@ -1,5 +1,6 @@
 package io.csh.utils.banner.core;
 
+import io.csh.utils.banner.art.DefaultAsciiArts;
 import java.util.Locale;
 
 /**
@@ -12,6 +13,7 @@ import java.util.Locale;
  *   <li>버전 표시 여부</li>
  *   <li>빌드 정보 표시 여부</li>
  *   <li>시스템 정보 표시 여부</li>
+ *   <li>ASCII 아트 표시 여부</li>
  *   <li>테마 설정</li>
  *   <li>사용자 정의 메시지</li>
  *   <li>로케일 설정</li>
@@ -22,6 +24,7 @@ import java.util.Locale;
  * BannerConfig config = new BannerConfig.Builder()
  *     .showLogo(true)
  *     .showVersion(true)
+ *     .showAsciiArt(true)
  *     .theme(BannerTheme.COLORFUL)
  *     .build();
  * </pre>
@@ -31,6 +34,7 @@ public class BannerConfig {
     private final boolean showVersion;
     private final boolean showBuildInfo;
     private final boolean showSystemInfo;
+    private final boolean showAsciiArt;
     private final BannerTheme theme;
     private final String customMessage;
     private final String logo;
@@ -43,6 +47,7 @@ public class BannerConfig {
         this.showVersion = builder.showVersion;
         this.showBuildInfo = builder.showBuildInfo;
         this.showSystemInfo = builder.showSystemInfo;
+        this.showAsciiArt = builder.showAsciiArt;
         this.theme = builder.theme;
         this.customMessage = builder.customMessage;
         this.logo = builder.logo;
@@ -85,6 +90,15 @@ public class BannerConfig {
      */
     public boolean isShowSystemInfo() {
         return showSystemInfo;
+    }
+
+    /**
+     * ASCII 아트 표시 여부를 반환합니다.
+     *
+     * @return ASCII 아트 표시 여부
+     */
+    public boolean isShowAsciiArt() {
+        return showAsciiArt;
     }
 
     /**
@@ -151,7 +165,15 @@ public class BannerConfig {
      * @return 기본 설정이 적용된 BannerConfig
      */
     public static BannerConfig defaultConfig() {
-        return new Builder().build();
+        return new Builder()
+            .showLogo(true)
+            .showVersion(true)
+            .showBuildInfo(true)
+            .showSystemInfo(true)
+            .theme(BannerTheme.DEFAULT)
+            .borderStyle(BorderStyle.SIMPLE)
+            .showAsciiArt(true)
+            .build();
     }
 
     /**
@@ -165,6 +187,7 @@ public class BannerConfig {
                 .showVersion(this.showVersion)
                 .showBuildInfo(this.showBuildInfo)
                 .showSystemInfo(this.showSystemInfo)
+                .showAsciiArt(this.showAsciiArt)
                 .theme(this.theme)
                 .customMessage(this.customMessage)
                 .logo(this.logo)
@@ -183,12 +206,13 @@ public class BannerConfig {
         private boolean showVersion = true;
         private boolean showBuildInfo = true;
         private boolean showSystemInfo = true;
+        private boolean showAsciiArt = true;
         private BannerTheme theme = BannerTheme.DEFAULT;
         private String customMessage;
         private String logo;
         private Locale locale = Locale.getDefault();
-        private String asciiArt;
-        private BorderStyle borderStyle = BorderStyle.NONE;
+        private String asciiArt = DefaultAsciiArts.BASIC;
+        private BorderStyle borderStyle = BorderStyle.SIMPLE;
 
         /**
          * 빌더를 생성합니다.
@@ -247,17 +271,25 @@ public class BannerConfig {
         }
 
         /**
+         * ASCII 아트 표시 여부를 설정합니다.
+         * true로 설정하면 배너에 ASCII 아트가 표시됩니다.
+         *
+         * @param showAsciiArt ASCII 아트 표시 여부
+         * @return 빌더 인스턴스
+         */
+        public Builder showAsciiArt(boolean showAsciiArt) {
+            this.showAsciiArt = showAsciiArt;
+            return this;
+        }
+
+        /**
          * 배너 테마를 설정합니다.
          * 테마는 배너의 색상과 스타일을 결정합니다.
          *
          * @param theme 배너 테마
          * @return 빌더 인스턴스
-         * @throws IllegalArgumentException theme이 null인 경우
          */
         public Builder theme(BannerTheme theme) {
-            if (theme == null) {
-                throw new IllegalArgumentException("Theme cannot be null");
-            }
             this.theme = theme;
             return this;
         }
@@ -292,12 +324,8 @@ public class BannerConfig {
          *
          * @param locale 로케일
          * @return 빌더 인스턴스
-         * @throws IllegalArgumentException locale이 null인 경우
          */
         public Builder locale(Locale locale) {
-            if (locale == null) {
-                throw new IllegalArgumentException("Locale cannot be null");
-            }
             this.locale = locale;
             return this;
         }
@@ -330,24 +358,16 @@ public class BannerConfig {
         }
 
         /**
-         * 설정된 값으로 BannerConfig를 생성합니다.
-         * 필수 설정이 누락된 경우 기본값이 사용됩니다.
+         * BannerConfig 인스턴스를 생성합니다.
          *
-         * @return 생성된 BannerConfig
+         * @return BannerConfig 인스턴스
          */
         public BannerConfig build() {
-            // 필수 설정 검증
-            if (theme == null) {
-                theme = BannerTheme.DEFAULT;
-            }
-            if (locale == null) {
-                locale = Locale.getDefault();
-            }
-            if (borderStyle == null) {
-                borderStyle = BorderStyle.NONE;
-            }
-
             return new BannerConfig(this);
         }
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 } 
