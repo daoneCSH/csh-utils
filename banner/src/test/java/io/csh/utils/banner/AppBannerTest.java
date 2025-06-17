@@ -10,97 +10,49 @@ import java.util.Locale;
 /**
  * AppBanner 테스트 클래스입니다.
  */
-public class AppBannerTest {
+class AppBannerTest {
 
     @Test
     void testDefaultBanner() {
-        // 기본 테마로 배너 출력
-        AppBanner.printDefault();
+        // 기본 설정으로 배너 출력 (BASIC ASCII 아트와 SIMPLE 테두리)
+        AppBanner banner = new AppBanner.Builder()
+            .name("MyApp")
+            .version("1.0.0")
+            .build();
+
+        banner.print();
     }
 
     @Test
     void testThemedBanner() {
-        // 각 테마별 배너 출력
-        AppBanner.print(BannerTheme.DEFAULT);
-        AppBanner.print(BannerTheme.COLORFUL);
-        AppBanner.print(BannerTheme.DARK);
-        AppBanner.print(BannerTheme.LIGHT);
-        AppBanner.print(BannerTheme.MONOCHROME);
-    }
-
-    @Test
-    void testCustomBannerWithSpringBootArt() {
-        // Spring Boot 스타일 ASCII 아트와 이중선 테두리 사용
+        // 컬러풀 테마로 배너 출력
         AppBanner banner = new AppBanner.Builder()
             .name("MyApp")
             .version("1.0.0")
-            .customMessage("Welcome to MyApp!")
             .theme(BannerTheme.COLORFUL)
-            .asciiArt(DefaultAsciiArts.SPRING_BOOT)
-            .borderStyle(BorderStyle.DOUBLE)
             .build();
 
         banner.print();
     }
 
     @Test
-    void testCustomBannerWithJavaArt() {
-        // Java 스타일 ASCII 아트와 둥근 모서리 테두리 사용
+    void testBannerWithNoAsciiArt() {
+        // ASCII 아트 없이 배너 출력
         AppBanner banner = new AppBanner.Builder()
             .name("MyApp")
             .version("1.0.0")
-            .customMessage("Welcome to MyApp!")
-            .theme(BannerTheme.COLORFUL)
-            .asciiArt(DefaultAsciiArts.MINI)
-            .borderStyle(BorderStyle.ROUNDED)
+            .showAsciiArt(false)
             .build();
 
         banner.print();
     }
 
     @Test
-    void testCustomBannerWithSimpleArt() {
-        // Simple 스타일 ASCII 아트와 굵은 선 테두리 사용
+    void testBannerWithNoBorder() {
+        // 테두리 없이 배너 출력
         AppBanner banner = new AppBanner.Builder()
             .name("MyApp")
             .version("1.0.0")
-            .customMessage("Welcome to MyApp!")
-            .theme(BannerTheme.COLORFUL)
-            .asciiArt(DefaultAsciiArts.SIMPLE)
-            .borderStyle(BorderStyle.BOLD)
-            .build();
-
-        banner.print();
-    }
-
-    @Test
-    void testCustomBannerWithMiniArt() {
-        // Mini 스타일 ASCII 아트와 단순 테두리 사용
-        AppBanner banner = new AppBanner.Builder()
-            .name("MyApp")
-            .version("1.0.0")
-            .customMessage("Welcome to MyApp!")
-            .theme(BannerTheme.COLORFUL)
-            .asciiArt(DefaultAsciiArts.MINI)
-            .borderStyle(BorderStyle.SIMPLE)
-            .build();
-
-        banner.print();
-    }
-
-    @Test
-    void testCustomBannerWithCustomArt() {
-        // 사용자 정의 ASCII 아트와 테두리 없음
-        AppBanner banner = new AppBanner.Builder()
-            .name("MyApp")
-            .version("1.0.0")
-            .customMessage("Welcome to MyApp!")
-            .theme(BannerTheme.COLORFUL)
-            .asciiArt("""
-                █▀█ █▀█ █▀█
-                █▀▄ █▀▄ █▀▄
-                ▀▀▀ ▀▀▀ ▀▀▀
-                """)
             .borderStyle(BorderStyle.NONE)
             .build();
 
@@ -108,16 +60,49 @@ public class AppBannerTest {
     }
 
     @Test
-    void testCustomBannerWithKoreanLocale() {
-        // 한글 로케일 사용
+    void testBannerWithCustomAsciiArt() {
+        // 사용자 정의 ASCII 아트로 배너 출력
+        String customArt = """
+            ███████╗██╗   ██╗███████╗████████╗███████╗███╗   ███╗
+            ██╔════╝╚██╗ ██╔╝██╔════╝╚══██╔══╝██╔════╝████╗ ████║
+            ███████╗ ╚████╔╝ █████╗     ██║   █████╗  ██╔████╔██║
+            ╚════██║  ╚██╔╝  ██╔══╝     ██║   ██╔══╝  ██║╚██╔╝██║
+            ███████║   ██║   ███████╗   ██║   ███████╗██║ ╚═╝ ██║
+            ╚══════╝   ╚═╝   ╚══════╝   ╚═╝   ╚══════╝╚═╝     ╚═╝
+            """;
+
         AppBanner banner = new AppBanner.Builder()
             .name("MyApp")
             .version("1.0.0")
-            .customMessage("환영합니다!")
+            .asciiArt(customArt)
+            .build();
+
+        banner.print();
+    }
+
+    @Test
+    void testBannerWithAllOptions() {
+        // 모든 옵션을 포함한 배너 출력
+        AppBanner banner = new AppBanner.Builder()
+            .name("MyApp")
+            .version("1.0.0")
             .theme(BannerTheme.COLORFUL)
-            .asciiArt(DefaultAsciiArts.SPRING_BOOT)
             .borderStyle(BorderStyle.DOUBLE)
-            .locale(Locale.KOREA)
+            .customMessage("Welcome to MyApp!")
+            .locale(Locale.KOREAN)
+            .build();
+
+        banner.print();
+    }
+
+    @Test
+    void testBannerWithMinimalInfo() {
+        // 최소한의 정보만 포함한 배너 출력
+        AppBanner banner = new AppBanner.Builder()
+            .name("MyApp")
+            .version("1.0.0")
+            .showBuildInfo(false)
+            .showSystemInfo(false)
             .build();
 
         banner.print();

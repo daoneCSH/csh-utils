@@ -18,26 +18,33 @@
         <module>thread</module>
         <module>config</module>
         <module>banner</module>
+        <module>output</module>
     </modules>
 
     <properties>
-        <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>17</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
+        
+        <!-- Dependencies -->
+        <lombok.version>1.18.30</lombok.version>
         <junit-jupiter.version>5.10.2</junit-jupiter.version>
-        <lombok.version>1.18.32</lombok.version>
-        <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
+        <mockito.version>5.11.0</mockito.version>
+        <commons-lang3.version>3.14.0</commons-lang3.version>
+        
+        <!-- Maven Plugins -->
+        <maven.compiler.plugin.version>3.12.1</maven.compiler.plugin.version>
+        <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
         <maven.source.plugin.version>3.3.0</maven.source.plugin.version>
         <maven.javadoc.plugin.version>3.6.3</maven.javadoc.plugin.version>
         <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
-        <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
-        <commons-lang3.version>3.12.0</commons-lang3.version>
         
         <!-- Module Versions -->
         <core.version>1.0.1</core.version>
-        <logging.version>1.0.2</logging.version>
+        <logging.version>1.0.3</logging.version>
+        <output-capture.version>1.0.0</output-capture.version>
         <thread.version>1.0.0</thread.version>
         <config.version>1.0.0</config.version>
         <banner.version>1.0.2</banner.version>
@@ -67,6 +74,12 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>io.csh</groupId>

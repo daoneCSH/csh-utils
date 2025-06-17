@@ -27,8 +27,8 @@ public final class LoggingProperties {
     public static final String LOG_FILE_COMPRESSION_FORMAT = "csh.logging.file.compression.format";
 
     // 기본값
-    public static final String DEFAULT_LOG_FILE_PATH = "logs";
-    public static final String DEFAULT_LOG_FILE_NAME = "application.log";
+    public static final String DEFAULT_LOG_FILE_PATH = "logs/csh-utils";
+    public static final String DEFAULT_LOG_FILE_NAME = "csh-utils.log";
     public static final String DEFAULT_LOG_FILE_MAX_SIZE = "10MB";
     public static final String DEFAULT_LOG_FILE_MAX_TOTAL_SIZE = "1GB";
     public static final String DEFAULT_LOG_FILE_RETENTION_DAYS = "365";
@@ -39,4 +39,8 @@ public final class LoggingProperties {
     // 콘솔 출력 설정
     public static final String LOG_CONSOLE_ENABLED = "csh.logging.console.enabled";
     public static final String DEFAULT_LOG_CONSOLE_ENABLED = "true";
+
+    // 파일 덮어쓰기 설정
+    public static final String LOG_OVERWRITE = "csh.logging.overwrite";
+    public static final String DEFAULT_LOG_OVERWRITE = "false";
 } 

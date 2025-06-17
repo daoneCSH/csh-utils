@@ -52,7 +52,7 @@ public class LogFileManager {
                         : getDefaultAppName();
 
         // 2. overwrite 옵션: 시스템 프로퍼티로 제어 (기본 false)
-        String overwriteProp = System.getProperty("log.overwrite", "false");
+        String overwriteProp = System.getProperty("csh.logging.overwrite", "false");
         this.overwrite = Boolean.parseBoolean(overwriteProp);
 
         this.maxFileSize = parseSize(config.getLogFileMaxSize());
@@ -115,6 +115,13 @@ public class LogFileManager {
                 if (!Files.exists(currentLogFile)) {
                     Files.createFile(currentLogFile);
                 }
+            }
+            
+            // Spring Boot의 로그 파일과 충돌하지 않도록 파일 권한 설정
+            try {
+                Files.setAttribute(currentLogFile, "dos:hidden", true);
+            } catch (IOException e) {
+                // Windows가 아닌 경우 무시
             }
             
             currentFileSize = Files.size(currentLogFile);

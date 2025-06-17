@@ -184,6 +184,7 @@ public class LoggingConfig {
           .append(" ").append(logFileCompressionValue)
           .append(" (").append(logFileCompressionFormat).append(")\n");
         sb.append("Log Pattern: ").append(logPattern).append("\n");
+        sb.append("Overwrite: ").append(System.getProperty("csh.logging.overwrite", "false")).append("\n");
         sb.append("===================================");
         return sb.toString();
     }

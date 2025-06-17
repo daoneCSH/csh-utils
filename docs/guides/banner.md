@@ -1,110 +1,105 @@
-# Banner 모듈 사용 가이드
+# AppBanner 사용법 및 옵션 안내
 
-## 개요
-Banner 모듈은 애플리케이션 시작 시 표시되는 배너를 관리하는 모듈입니다. 복잡한 내부 구현을 숨기고 간단한 API를 제공하여 쉽게 사용할 수 있습니다.
+## 기본 동작
+- 별도의 설정 없이 AppBanner를 생성하면 BASIC 스타일의 ASCII 아트가 기본으로 출력됩니다.
+- 배너의 옵션 정보(앱 이름, 버전, 빌드 정보 등)는 테두리로 감싸서 출력됩니다.
+- ASCII 아트는 테두리 없이 자유롭게 출력됩니다.
+- 커스텀 메시지는 빈 줄과 함께 테두리 안에 출력됩니다.
 
-## 시작하기
+## 주요 옵션
+| 옵션                | 설명                                                         |
+|---------------------|--------------------------------------------------------------|
+| name(String)        | 애플리케이션 이름                                            |
+| version(String)     | 애플리케이션 버전                                            |
+| theme(BannerTheme)  | 배너 테마 (DEFAULT, COLORFUL 등)                             |
+| borderStyle(BorderStyle) | 옵션 정보에 적용할 테두리 스타일 (SIMPLE, DOUBLE, NONE 등) |
+| asciiArt(String)    | 사용자 정의 ASCII 아트 지정                                   |
+| showAsciiArt(boolean) | ASCII 아트 출력 여부 (false로 설정 시 아트 미출력)           |
+| customMessage(String) | 사용자 정의 메시지 (빈 줄과 함께 테두리 안에 출력)           |
+| showBuildInfo(boolean) | 빌드 정보 표시 여부                                         |
+| showSystemInfo(boolean) | 시스템 정보 표시 여부                                       |
 
-### 의존성 추가
-```xml
-<dependency>
-    <groupId>io.csh</groupId>
-    <artifactId>csh-utils-banner</artifactId>
-    <version>1.0.1</version>
-</dependency>
-```
+## 사용 예시
 
-### 기본 사용법
+### 1. 기본 배너 출력
 ```java
-import io.csh.utils.banner.AppBanner;
-
-// 기본 테마로 배너 출력
-AppBanner.printDefault();
+AppBanner banner = new AppBanner.Builder()
+    .name("MyApp")
+    .version("1.0.0")
+    .build();
+banner.print();
 ```
+- BASIC ASCII 아트와 SIMPLE 테두리로 옵션 정보가 출력됩니다.
 
-## API 설명
-
-### 1. 기본 테마 출력
+### 2. ASCII 아트 없이 출력
 ```java
-AppBanner.printDefault();
+AppBanner banner = new AppBanner.Builder()
+    .name("MyApp")
+    .version("1.0.0")
+    .showAsciiArt(false)
+    .build();
+banner.print();
 ```
-- 기본 테마를 사용하여 배너를 출력합니다.
-- 애플리케이션 이름, 버전, 빌드 정보, 시스템 정보를 포함합니다.
+- 옵션 정보만 테두리로 출력되고, ASCII 아트는 출력되지 않습니다.
 
-### 2. 특정 테마 출력
+### 3. 테두리 없이 출력
 ```java
-AppBanner.print(BannerTheme.ASCII);
+AppBanner banner = new AppBanner.Builder()
+    .name("MyApp")
+    .version("1.0.0")
+    .borderStyle(BorderStyle.NONE)
+    .build();
+banner.print();
 ```
-- 지정된 테마를 사용하여 배너를 출력합니다.
-- 지원되는 테마:
-  - `DEFAULT`: 기본 테마
-  - `ASCII`: ASCII 아트 스타일
-  - `COLORFUL`: 컬러풀한 테마
-  - `DARK`: 다크 테마
-  - `LIGHT`: 라이트 테마
-  - `MONOCHROME`: 흑백 테마
+- 옵션 정보도 테두리 없이 출력됩니다.
 
-### 3. 사용자 정의 배너 출력
+### 4. 커스텀 메시지와 테두리 스타일
 ```java
-// 배너 정보 설정
-BannerInfo info = new BannerInfo();
-info.setAppName("MyApp");
-info.setVersion("1.0.0");
-info.setCustomMessage("Welcome to MyApp!");
+AppBanner banner = new AppBanner.Builder()
+    .name("MyApp")
+    .version("1.0.0")
+    .customMessage("Welcome to MyApp!")
+    .borderStyle(BorderStyle.BOLD)
+    .build();
+banner.print();
+```
+- 커스텀 메시지가 빈 줄과 함께 테두리 안에 출력됩니다.
 
-// 배너 설정
-BannerConfig config = new BannerConfig.Builder()
+### 5. 모든 옵션 조합
+```java
+AppBanner banner = new AppBanner.Builder()
+    .name("MyApp")
+    .version("1.0.0")
     .theme(BannerTheme.COLORFUL)
-    .showLogo(true)
-    .showVersion(true)
+    .borderStyle(BorderStyle.DOUBLE)
+    .customMessage("Welcome to MyApp!")
+    .showAsciiArt(true)
     .showBuildInfo(true)
     .showSystemInfo(true)
     .build();
-
-// 배너 출력
-AppBanner.printCustom(info, config);
+banner.print();
 ```
 
-## 고급 사용법
-
-### 1. 배너 정보 커스터마이징
-```java
-BannerInfo info = new BannerInfo();
-info.setAppName("MyApp");
-info.setVersion("1.0.0");
-info.setBuildTime("2024-03-21");
-info.setCustomMessage("Welcome to MyApp!");
+## 출력 예시
+```
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ MyApp                             ┃
+┃ Version: 1.0.0                    ┃
+┃ Build Time: 2025-06-17 10:20:13   ┃
+┃ Java Version: 24.0.1              ┃
+┃ OS: Windows 11 10.0 (amd64)       ┃
+┃                                   ┃
+┃ Welcome to MyApp!                 ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 ```
 
-### 2. 배너 설정 커스터마이징
-```java
-BannerConfig config = new BannerConfig.Builder()
-    .theme(BannerTheme.COLORFUL)
-    .showLogo(true)
-    .showVersion(true)
-    .showBuildInfo(true)
-    .showSystemInfo(true)
-    .customMessage("Custom Message")
-    .logo("Custom Logo")
-    .locale(Locale.ENGLISH)
-    .build();
-```
+## 참고 사항
+- ASCII 아트는 항상 테두리 없이 출력되며, 옵션 정보(앱 이름, 버전 등)만 테두리로 감싸집니다.
+- `showAsciiArt(false)`로 설정하면 ASCII 아트가 출력되지 않습니다.
+- 커스텀 메시지는 `customMessage(String)`으로 지정할 수 있으며, 빈 줄과 함께 테두리 안에 출력됩니다.
+- 최소 정보만 출력하고 싶다면 `showBuildInfo(false)`, `showSystemInfo(false)` 옵션을 활용하세요.
+- 테두리 스타일은 `borderStyle(BorderStyle)`로 지정할 수 있으며, 옵션 정보에만 적용됩니다.
 
-## 주의사항
-1. 배너 설정은 `BannerConfig.Builder`를 통해 생성해야 합니다.
-2. 사용자 정의 배너 정보는 `BannerInfo` 객체를 통해 제공됩니다.
-3. 테마는 `BannerTheme` 열거형을 통해 지정할 수 있습니다.
+---
 
-## 문제 해결
-1. 배너가 표시되지 않는 경우
-   - 콘솔 출력이 가능한지 확인
-   - 권한 설정 확인
-   - 로케일 설정 확인
-
-2. 테마가 적용되지 않는 경우
-   - ANSI 색상 코드 지원 여부 확인
-   - 터미널 설정 확인
-
-## 관련 문서
-- [Banner 모듈 설계 문서](../design/banner.md)
-- [Banner 모듈 릴리즈 노트](../releases/banner-1.0.1.md) 
+최신 AppBanner 동작 및 옵션은 위와 같습니다. 추가 문의나 개선 요청은 언제든 환영합니다. 

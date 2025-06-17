@@ -21,4 +21,11 @@ public class LogOutputManager {
     public void setOutput(PrintStream output) {
         this.output = output;
     }
+
+    /**
+     * 테스트를 위해 출력 스트림을 초기화합니다.
+     */
+    public void reset() {
+        this.output = System.out;
+    }
 } 

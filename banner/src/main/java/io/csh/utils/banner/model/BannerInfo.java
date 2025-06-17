@@ -48,6 +48,18 @@ public class BannerInfo {
         this.osArch = System.getProperty("os.arch");
     }
 
+    /**
+     * 배너 정보를 생성합니다.
+     *
+     * @param appName 애플리케이션 이름
+     * @param version 애플리케이션 버전
+     * @param buildTime 빌드 시간
+     * @param javaVersion Java 버전
+     * @param osName 운영체제 이름
+     * @param osVersion 운영체제 버전
+     * @param osArch 운영체제 아키텍처
+     * @param customMessage 사용자 정의 메시지
+     */
     public BannerInfo(String appName, String version, String buildTime, String javaVersion,
                      String osName, String osVersion, String osArch, String customMessage) {
         this.appName = appName;

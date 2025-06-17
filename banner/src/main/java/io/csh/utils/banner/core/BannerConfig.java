@@ -367,6 +367,11 @@ public class BannerConfig {
         }
     }
 
+    /**
+     * BannerConfig.Builder 인스턴스를 생성합니다.
+     *
+     * @return BannerConfig.Builder 인스턴스
+     */
     public static Builder builder() {
         return new Builder();
     }

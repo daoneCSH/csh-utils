@@ -38,11 +38,12 @@ AppBanner.printDefault();
 ```
 
 ## 모듈 구성
-- **core**: 기본 유틸리티 모듈
-- **logging**: 로깅 시스템 모듈
-- **banner**: 애플리케이션 배너 모듈
-- **thread**: 스레드 관리 모듈
-- **config**: 설정 관리 모듈
+- **core**: 핵심 유틸리티 기능
+- **logging**: 로깅 기능
+- **thread**: 스레드 관련 유틸리티
+- **config**: 설정 관리
+- **banner**: 애플리케이션 배너 출력
+- **output**: 시스템 출력 관리
 
 ## 문서
 - [사용 가이드](docs/guides/)
