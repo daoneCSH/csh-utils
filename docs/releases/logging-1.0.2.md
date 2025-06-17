@@ -2,17 +2,17 @@
 
 ## 주요 변경사항
 
-### 1. 비동기 로깅 기능 강화
-- AsyncLogger 클래스 개선
-  - 로그 메시지 큐 관리 개선
-  - 스레드 안전성 강화
-  - 성능 최적화
-- 로그 메시지 처리 개선
-  - 메시지 큐 크기 조정 가능
-  - 배치 처리 지원
-  - 메모리 사용량 최적화
+### 1. 설정 키 통일
+- 모든 설정 키를 `csh.logging.` 접두사로 통일
+- `log.overwrite`를 `csh.logging.overwrite`로 변경
+- 설정 키 불일치 시 명확한 에러 메시지 출력
 
-### 2. 로그 파일 관리 기능 개선
+### 2. 로그 출력 개선
+- 기본값 사용 시 불필요한 로그 출력 제거
+- 잘못된 설정에 대한 에러 메시지 개선
+- 로그 레벨 유효성 검사 강화
+
+### 3. 로그 파일 관리 기능 개선
 - LogFileManager 클래스 개선
   - 파일 로테이션 로직 개선
   - 파일 크기 기반 로테이션
@@ -22,7 +22,7 @@
   - 압축 파일 자동 생성
   - 압축 파일 관리
 
-### 3. 로그 포맷팅 시스템 개선
+### 4. 로그 포맷팅 시스템 개선
 - LogFormat 클래스 추가
   - 커스텀 포맷 패턴 지원
   - 날짜/시간 포맷팅 개선
@@ -35,7 +35,7 @@
   - %msg: 로그 메시지
   - %n: 줄바꿈
 
-### 4. 설정 관리 개선
+### 5. 설정 관리 개선
 - LoggingConfig 클래스 개선
   - 시스템 프로퍼티 연동 강화
   - 설정 값 검증 기능 추가
@@ -75,11 +75,46 @@ manager.compressLogFiles();
 ### 커스텀 포맷
 ```java
 // 커스텀 포맷 생성
-LogFormat format = new LogFormat("%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n");
+LogFormat format = new LogFormat.Builder()
+    .withTimestamp("yyyy-MM-dd HH:mm:ss.SSS")
+    .withThreadName()
+    .withLogLevel()
+    .withLoggerName()
+    .withMessage()
+    .build();
 
-// 로그 메시지 포맷팅
-String formattedMessage = format.format(logMessage);
+// 포맷 적용
+logger.setFormat(format);
 ```
+
+## 설정 예시
+
+### JVM 옵션
+```bash
+-Dcsh.logging.level=INFO
+-Dcsh.logging.file.path=/path/to/logs
+-Dcsh.logging.file.name=application.log
+-Dcsh.logging.file.max-size=20MB
+-Dcsh.logging.file.max-total-size=1GB
+-Dcsh.logging.file.retention-days=30
+-Dcsh.logging.overwrite=true
+```
+
+### application.properties
+```properties
+csh.logging.level=INFO
+csh.logging.file.path=/path/to/logs
+csh.logging.file.name=application.log
+csh.logging.file.max-size=20MB
+csh.logging.file.max-total-size=1GB
+csh.logging.file.retention-days=30
+csh.logging.overwrite=true
+```
+
+## 주의사항
+- 기존 `log.overwrite` 설정을 사용하던 경우 `csh.logging.overwrite`로 변경 필요
+- 잘못된 설정 키 사용 시 명확한 에러 메시지가 출력됨
+- 기본값 사용 시 불필요한 로그가 출력되지 않음
 
 ## 마이그레이션 가이드
 

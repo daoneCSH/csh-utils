@@ -1,6 +1,33 @@
 # CSH Utils Changelog
 
-## [1.0.0] - 2025-06-16
+## [Unreleased]
+
+### Added
+- None
+
+## [1.0.1] - 2024-03-21
+
+### Banner 모듈
+#### 개선사항
+- Facade 패턴 적용
+  - `AppBanner` 클래스 추가로 사용성 개선
+  - 단일 import로 배너 기능 사용 가능
+  - 기본 테마, 커스텀 테마, 사용자 정의 배너 지원
+- API 개선
+  - `printDefault()`: 기본 테마로 배너 출력
+  - `print(BannerTheme)`: 지정된 테마로 배너 출력
+  - `printCustom(BannerInfo, BannerConfig)`: 사용자 정의 배너 출력
+- 내부 구현 개선
+  - `BannerConfig` 빌더 패턴 적용
+  - `AppBannerUtil`과 `ConsoleBannerRenderer` 연동 개선
+  - 배너 정보 자동 감지 기능 강화
+
+### Fixed
+- Maven 버전 관리 문제 해결
+  - 모든 모듈의 version 태그를 상수로 변경
+  - 의존성 버전 충돌 해결
+
+## [1.0.0] - 2024-03-16
 
 ### Banner 모듈
 #### 추가된 기능
@@ -124,98 +151,4 @@
 
 ### Config 모듈
 - 초기 버전 릴리즈
-- 기본 설정 관리 기능
-
-## [1.0.1] - 2024-03-21
-
-### Banner 모듈
-#### 개선사항
-- Facade 패턴 적용
-  - `AppBanner` 클래스 추가로 사용성 개선
-  - 단일 import로 배너 기능 사용 가능
-  - 기본 테마, 커스텀 테마, 사용자 정의 배너 지원
-- API 개선
-  - `printDefault()`: 기본 테마로 배너 출력
-  - `print(BannerTheme)`: 지정된 테마로 배너 출력
-  - `printCustom(BannerInfo, BannerConfig)`: 사용자 정의 배너 출력
-- 내부 구현 개선
-  - `BannerConfig` 빌더 패턴 적용
-  - `AppBannerUtil`과 `ConsoleBannerRenderer` 연동 개선
-  - 배너 정보 자동 감지 기능 강화
-
-## 향후 계획
-
-### Banner 모듈
-- [ ] 배너 애니메이션 지원
-- [ ] 더 많은 테마 추가
-- [ ] 웹 기반 배너 에디터
-- [ ] 배너 템플릿 마켓플레이스
-
-### Logging 모듈
-- [ ] 로그 집계 시스템
-- [ ] 로그 시각화 도구
-- [ ] 로그 알림 시스템
-- [ ] 로그 분석 API
-
-### Core 모듈
-- [ ] 더 많은 유틸리티 클래스
-- [ ] 성능 최적화
-- [ ] 문서화 개선
-
-### Thread 모듈
-- [ ] 분산 스레드 풀
-- [ ] 작업 스케줄링
-- [ ] 스레드 모니터링 UI
-
-### Config 모듈
-- [ ] 설정 UI
-- [ ] 설정 버전 관리
-- [ ] 설정 마이그레이션 도구
-
-## [1.0.0] - 2025-06-16
-
-### Added
-- Initial release of csh-utils library
-- Core module with basic utilities
-- Logging module with advanced logging capabilities
-- Thread module for thread management
-- Config module for configuration management
-- Banner module for application banner display
-
-### Changed
-- Banner module (v1.0.1)
-  - 날짜 형식을 "yyyy-MM-dd HH:mm:ss" 형식으로 변경
-  - 한국 시간대(Asia/Seoul) 적용
-  - csh.utils 버전 정보 표시 기능 추가
-
-### Fixed
-- Maven 버전 관리 문제 해결
-  - 모든 모듈의 version 태그를 상수로 변경
-  - 의존성 버전 충돌 해결
-
-## [Unreleased]
-
-### Added
-- None
-
-### Changed
-- None
-
-### Fixed
-- None
-
-## [1.0.2] - 2025-06-16
-
-### Banner Module
-- 테두리 기능을 상단/하단 구분선만 남기도록 단순화
-- BorderStyle enum 및 관련 API 제거
-- 폭 계산 로직 단순화 및 출력 안정성 개선
-- 한글, ASCII 아트 등 다양한 문자 출력 시 깨짐 현상 해결
-
-## [1.0.1] - 2025-06-15
-
-### Banner Module
-- 초기 릴리즈
-- 기본 배너 출력 기능 구현
-- ASCII 아트 지원
-- 테마 지원 
+- 기본 설정 관리 기능 

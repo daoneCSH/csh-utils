@@ -32,8 +32,9 @@ csh.logging.level=WARN
 -Dcsh.logging.file.path=/path/to/logs
 -Dcsh.logging.file.name=application.log
 -Dcsh.logging.file.max-size=20MB
+-Dcsh.logging.file.max-total-size=1GB
 -Dcsh.logging.file.retention-days=30
--Dlog.overwrite=true
+-Dcsh.logging.overwrite=true
 ```
 
 ### application.properties로 설정
@@ -42,8 +43,9 @@ csh.logging.level=INFO
 csh.logging.file.path=/path/to/logs
 csh.logging.file.name=application.log
 csh.logging.file.max-size=20MB
+csh.logging.file.max-total-size=1GB
 csh.logging.file.retention-days=30
-log.overwrite=true
+csh.logging.overwrite=true
 ```
 
 ### logging.properties로 설정
@@ -59,7 +61,7 @@ csh.logging.file.max-total-size=1GB
 csh.logging.file.retention-days=365
 
 # 로그 파일 덮어쓰기 설정 (true: 기존 파일 삭제 후 새로 생성, false: 기존 파일 유지)
-log.overwrite=false
+csh.logging.overwrite=false
 
 # 로그 파일 압축 설정
 csh.logging.file.compression.unit=WEEK
@@ -89,14 +91,14 @@ csh.logging.console.enabled=true
 
 ## 로그 파일 덮어쓰기 옵션
 
-`log.overwrite` 설정은 로그 파일의 생성 방식을 제어합니다:
+`csh.logging.overwrite` 설정은 로그 파일의 생성 방식을 제어합니다:
 
-1. `log.overwrite=true`로 설정하면:
+1. `csh.logging.overwrite=true`로 설정하면:
    - 애플리케이션 시작 시 기존 로그 파일을 삭제하고 새로 생성
    - 로그 파일 로테이션 시에도 기존 파일을 덮어씀
    - 이전 로그 내용이 모두 삭제됨
 
-2. `log.overwrite=false`로 설정하면 (기본값):
+2. `csh.logging.overwrite=false`로 설정하면 (기본값):
    - 기존 로그 파일이 없을 때만 새로 생성
    - 로그 파일 로테이션 시 기존 파일을 보존
    - 이전 로그 내용이 유지됨
@@ -128,6 +130,7 @@ Log File Max Total Size: 1GB
 Log File Retention Days: 365
 Log File Compression: WEEK 1 (gz)
 Log Pattern: %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+Overwrite: false
 ===================================
 ```
 

@@ -35,6 +35,8 @@ public class BannerConfig {
     private final String customMessage;
     private final String logo;
     private final Locale locale;
+    private final String asciiArt;
+    private final BorderStyle borderStyle;
 
     private BannerConfig(Builder builder) {
         this.showLogo = builder.showLogo;
@@ -45,6 +47,8 @@ public class BannerConfig {
         this.customMessage = builder.customMessage;
         this.logo = builder.logo;
         this.locale = builder.locale;
+        this.asciiArt = builder.asciiArt;
+        this.borderStyle = builder.borderStyle;
     }
 
     /**
@@ -124,6 +128,24 @@ public class BannerConfig {
     }
 
     /**
+     * ASCII 아트를 반환합니다.
+     *
+     * @return ASCII 아트 문자열
+     */
+    public String getAsciiArt() {
+        return asciiArt;
+    }
+
+    /**
+     * 테두리 스타일을 반환합니다.
+     *
+     * @return 테두리 스타일
+     */
+    public BorderStyle getBorderStyle() {
+        return borderStyle;
+    }
+
+    /**
      * 기본 설정으로 BannerConfig를 생성합니다.
      *
      * @return 기본 설정이 적용된 BannerConfig
@@ -147,6 +169,8 @@ public class BannerConfig {
                 .customMessage(this.customMessage)
                 .logo(this.logo)
                 .locale(this.locale)
+                .asciiArt(this.asciiArt)
+                .borderStyle(this.borderStyle)
                 .build();
     }
 
@@ -163,6 +187,8 @@ public class BannerConfig {
         private String customMessage;
         private String logo;
         private Locale locale = Locale.getDefault();
+        private String asciiArt;
+        private BorderStyle borderStyle = BorderStyle.NONE;
 
         /**
          * 빌더를 생성합니다.
@@ -277,6 +303,33 @@ public class BannerConfig {
         }
 
         /**
+         * ASCII 아트를 설정합니다.
+         * 이 아트는 배너의 상단에 표시됩니다.
+         *
+         * @param asciiArt ASCII 아트
+         * @return 빌더 인스턴스
+         */
+        public Builder asciiArt(String asciiArt) {
+            this.asciiArt = asciiArt;
+            return this;
+        }
+
+        /**
+         * 테두리 스타일을 설정합니다.
+         * 테두리는 배너의 외곽을 꾸며줍니다.
+         *
+         * @param borderStyle 테두리 스타일
+         * @return 빌더 인스턴스
+         */
+        public Builder borderStyle(BorderStyle borderStyle) {
+            if (borderStyle == null) {
+                throw new IllegalArgumentException("BorderStyle cannot be null");
+            }
+            this.borderStyle = borderStyle;
+            return this;
+        }
+
+        /**
          * 설정된 값으로 BannerConfig를 생성합니다.
          * 필수 설정이 누락된 경우 기본값이 사용됩니다.
          *
@@ -289,6 +342,9 @@ public class BannerConfig {
             }
             if (locale == null) {
                 locale = Locale.getDefault();
+            }
+            if (borderStyle == null) {
+                borderStyle = BorderStyle.NONE;
             }
 
             return new BannerConfig(this);

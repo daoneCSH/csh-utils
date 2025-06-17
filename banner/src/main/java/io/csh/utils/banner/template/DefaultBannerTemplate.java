@@ -82,11 +82,6 @@ public class DefaultBannerTemplate implements BannerTemplate {
             banner.append("Version: ").append(info.getVersion()).append("\n");
         }
 
-        // csh.utils 버전 표시
-        if (config.isShowVersion() && info.getCshUtilsVersion() != null) {
-            banner.append("CSH Utils Version: ").append(info.getCshUtilsVersion()).append("\n");
-        }
-
         // 빌드 정보 표시
         if (config.isShowBuildInfo() && info.getBuildTime() != null) {
             banner.append("Build Time: ").append(info.getBuildTime()).append("\n");

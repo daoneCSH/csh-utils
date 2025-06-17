@@ -1,8 +1,11 @@
 package io.csh.utils.banner.model;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Properties;
 
 /**
  * 배너에 표시될 정보를 담는 클래스입니다.
@@ -22,6 +25,8 @@ import java.time.format.DateTimeFormatter;
  */
 public class BannerInfo {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final String VERSION_PROPERTIES = "/io/csh/utils/v.properties";
+    
     private String appName;
     private String version;
     private String buildTime;
@@ -30,7 +35,6 @@ public class BannerInfo {
     private String osVersion;
     private String osArch;
     private String customMessage;
-    private String cshUtilsVersion;
 
     /**
      * BannerInfo 인스턴스를 생성합니다.
@@ -42,7 +46,6 @@ public class BannerInfo {
         this.osName = System.getProperty("os.name");
         this.osVersion = System.getProperty("os.version");
         this.osArch = System.getProperty("os.arch");
-        this.cshUtilsVersion = "1.0.0"; // csh.utils 버전
     }
 
     /**
@@ -206,35 +209,15 @@ public class BannerInfo {
     }
 
     /**
-     * csh.utils 버전을 반환합니다.
-     *
-     * @return csh.utils 버전
-     */
-    public String getCshUtilsVersion() {
-        return cshUtilsVersion;
-    }
-
-    /**
-     * csh.utils 버전을 설정합니다.
-     *
-     * @param cshUtilsVersion csh.utils 버전
-     */
-    public void setCshUtilsVersion(String cshUtilsVersion) {
-        this.cshUtilsVersion = cshUtilsVersion;
-    }
-
-    /**
      * 다른 BannerInfo 객체의 정보로 현재 객체를 업데이트합니다.
      * null이 아닌 필드만 업데이트됩니다.
      *
      * @param info 업데이트할 배너 정보
-     * @throws IllegalArgumentException info가 null인 경우
      */
     public void update(BannerInfo info) {
         if (info == null) {
-            throw new IllegalArgumentException("BannerInfo cannot be null");
+            return;
         }
-
         if (info.getAppName() != null) {
             this.appName = info.getAppName();
         }
@@ -258,9 +241,6 @@ public class BannerInfo {
         }
         if (info.getCustomMessage() != null) {
             this.customMessage = info.getCustomMessage();
-        }
-        if (info.getCshUtilsVersion() != null) {
-            this.cshUtilsVersion = info.getCshUtilsVersion();
         }
     }
 } 
