@@ -1,128 +1,128 @@
 package io.csh.utils.banner.core;
 
 /**
- * BorderStyle는 배너의 테두리 스타일을 정의합니다.
- * <p>
- * SIMPLE, DOUBLE, ROUNDED, BOLD, DOTTED, DASHED 등 다양한 스타일을 제공합니다.
- * </p>
+ * 배너의 테두리 스타일을 정의하는 열거형입니다.
+ * 
+ * 지원되는 테두리 스타일:
+ * <ul>
+ *     <li><b>simple</b> - 기본 테두리 스타일 (+-|)</li>
+ *     <li><b>double</b> - 이중 테두리 스타일 (╔═╗║╚╝)</li>
+ *     <li><b>round</b> - 둥근 모서리 테두리 스타일 (╭─╮│╰╯)</li>
+ *     <li><b>bold</b> - 굵은 테두리 스타일 (┏━┓┃┗┛)</li>
+ *     <li><b>dashed</b> - 점선 테두리 스타일 (┌─┐│└┘)</li>
+ *     <li><b>dotted</b> - 점 테두리 스타일 (┌┄┐┆└┘)</li>
+ * </ul>
+ * 
+ * 사용 예시:
+ * <pre>
+ * AppBanner.builder()
+ *     .borderStyle("double")
+ *     .build()
+ *     .print();
+ * </pre>
  */
 public enum BorderStyle {
     /**
-     * 단순 테두리
+     * 기본 테두리 스타일
+     * <pre>
+     * +------------------+
+     * |                  |
+     * |     Content      |
+     * |                  |
+     * +------------------+
+     * </pre>
      */
-    SIMPLE("+", "-", "|"),
+    SIMPLE("+-|"),
 
     /**
-     * 이중 테두리
+     * 이중 테두리 스타일
+     * <pre>
+     * ╔══════════════════╗
+     * ║                  ║
+     * ║     Content      ║
+     * ║                  ║
+     * ╚══════════════════╝
+     * </pre>
      */
-    DOUBLE("╔", "═", "║"),
+    DOUBLE("╔═╗║╚╝"),
 
     /**
-     * 둥근 테두리
+     * 둥근 모서리 테두리 스타일
+     * <pre>
+     * ╭──────────────────╮
+     * │                  │
+     * │     Content      │
+     * │                  │
+     * ╰──────────────────╯
+     * </pre>
      */
-    ROUNDED("╭", "─", "│"),
+    ROUND("╭─╮│╰╯"),
 
     /**
-     * 굵은 테두리
+     * 굵은 테두리 스타일
+     * <pre>
+     * ┏━━━━━━━━━━━━━━━━━━┓
+     * ┃                  ┃
+     * ┃     Content      ┃
+     * ┃                  ┃
+     * ┗━━━━━━━━━━━━━━━━━━┛
+     * </pre>
      */
-    BOLD("┏", "━", "┃"),
+    BOLD("┏━┓┃┗┛"),
 
     /**
-     * 점선 테두리
+     * 점선 테두리 스타일
+     * <pre>
+     * ┌──────────────────┐
+     * │                  │
+     * │     Content      │
+     * │                  │
+     * └──────────────────┘
+     * </pre>
      */
-    DOTTED("┌", "·", "│"),
+    DASHED("┌─┐│└┘"),
 
     /**
-     * 대시 테두리
+     * 점 테두리 스타일
+     * <pre>
+     * ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
+     * ┆                  ┆
+     * ┆     Content      ┆
+     * ┆                  ┆
+     * └┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+     * </pre>
      */
-    DASHED("┌", "┄", "│");
+    DOTTED("┌┄┐┆└┘");
 
-    private final String corner;
-    private final String horizontal;
-    private final String vertical;
+    private final String characters;
 
     /**
      * BorderStyle을 생성합니다.
-     * @param corner 모서리 문자
-     * @param horizontal 수평선 문자
-     * @param vertical 수직선 문자
+     * @param characters 테두리 스타일 문자
      */
-    BorderStyle(String corner, String horizontal, String vertical) {
-        this.corner = corner;
-        this.horizontal = horizontal;
-        this.vertical = vertical;
+    BorderStyle(String characters) {
+        this.characters = characters;
     }
 
     /**
-     * 모서리 문자를 반환합니다.
-     *
-     * @return 모서리 문자
+     * 테두리 스타일의 문자를 반환합니다.
+     * @return 테두리 스타일 문자
      */
-    public String getCorner() {
-        return corner;
+    public String getCharacters() {
+        return characters;
     }
 
     /**
-     * 수평선 문자를 반환합니다.
-     *
-     * @return 수평선 문자
+     * 문자열로부터 BorderStyle을 찾습니다.
+     * @param style 테두리 스타일 문자열
+     * @return BorderStyle 인스턴스
+     * @throws IllegalArgumentException 지원하지 않는 스타일인 경우
      */
-    public String getHorizontal() {
-        return horizontal;
-    }
-
-    /**
-     * 수직선 문자를 반환합니다.
-     *
-     * @return 수직선 문자
-     */
-    public String getVertical() {
-        return vertical;
-    }
-
-    /**
-     * 테두리 스타일에 따른 상단 테두리를 생성합니다.
-     *
-     * @param width 테두리 너비
-     * @return 상단 테두리
-     */
-    public String createTopBorder(int width) {
-        return corner + horizontal.repeat(width - 2) + corner;
-    }
-
-    /**
-     * 테두리 스타일에 따른 하단 테두리를 생성합니다.
-     *
-     * @param width 테두리 너비
-     * @return 하단 테두리
-     */
-    public String createBottomBorder(int width) {
-        return corner + horizontal.repeat(width - 2) + corner;
-    }
-
-    /**
-     * 테두리 스타일에 따른 좌측 테두리를 생성합니다.
-     *
-     * @return 좌측 테두리
-     */
-    public String createLeftBorder() {
-        return vertical;
-    }
-
-    /**
-     * 테두리 스타일에 따른 우측 테두리를 생성합니다.
-     *
-     * @return 우측 테두리
-     */
-    public String createRightBorder() {
-        return vertical;
-    }
-
-    /**
-     * 스타일 이름을 반환합니다.
-     * @return 스타일 이름
-     */
-    public String getStyleName() {
-        return this.name();
+    public static BorderStyle fromString(String style) {
+        try {
+            return valueOf(style.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Unsupported border style: " + style);
+        }
     }
 } 

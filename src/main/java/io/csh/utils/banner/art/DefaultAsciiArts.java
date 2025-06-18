@@ -16,4 +16,10 @@ public class DefaultAsciiArts {
               | (__ \\__ \\| __ ||___|| |_| |  | |   | | | | |__ \\__ \\
                \\___||___/|_||_|      \\___/   |_|  |___||____||___/
             """;
+
+    /**
+     * DefaultAsciiArts를 생성합니다.
+     */
+    private DefaultAsciiArts() {
+    }
 } 

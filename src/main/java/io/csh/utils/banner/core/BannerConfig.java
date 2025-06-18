@@ -58,6 +58,12 @@ public class BannerConfig {
         private String borderStyle = "simple";
 
         /**
+         * BannerConfig.Builder를 생성합니다.
+         */
+        public Builder() {
+        }
+
+        /**
          * ASCII 아트 표시 여부를 설정합니다.
          * @param showAsciiArt true: 표시, false: 미표시
          * @return Builder 인스턴스

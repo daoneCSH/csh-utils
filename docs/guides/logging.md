@@ -4,39 +4,53 @@
 
 로깅 모듈은 Java 애플리케이션을 위한 간단하고 효율적인 로깅 시스템을 제공합니다. 이 모듈은 외부 의존성 없이 기본적인 로깅 기능을 제공하며, Java Agent와 일반 Java 애플리케이션 모두에서 사용할 수 있습니다.
 
+**🎉 새로운 간편한 사용법**: `LoggerFactory.getLogger()` 없이 바로 사용할 수 있는 `Logging` 클래스를 제공합니다.
+
 ## 2. 기본 사용
 
-### 2.1 기본 로깅
+### 2.1 간편한 로깅 (권장)
 ```java
-import io.csh.utils.integration.CSHUtils;
+import io.csh.utils.logging.Logging;
 
-// 정보 로그
-CSHUtils.Logging.info(MyClass.class, "Info message");
-
-// 에러 로그
-CSHUtils.Logging.error(MyClass.class, "Error message");
+// 기본 로깅
+Logging.info("애플리케이션 시작");
+Logging.debug("디버그 메시지");
+Logging.warn("경고 메시지");
+Logging.error("오류 메시지");
 
 // 예외와 함께 로깅
 try {
     // 작업 수행
 } catch (Exception e) {
-    CSHUtils.Logging.error(MyClass.class, "Error occurred", e);
+    Logging.error("오류 발생", e);
 }
 ```
 
-### 2.2 로그 레벨
+### 2.2 모든 로그 레벨 지원
 ```java
-// 디버그 로그
-CSHUtils.Logging.debug(MyClass.class, "Debug message");
+// TRACE - 가장 상세한 디버깅 정보
+Logging.trace("메서드 진입");
 
-// 정보 로그
-CSHUtils.Logging.info(MyClass.class, "Info message");
+// DEBUG - 개발 시 디버깅 정보
+Logging.debug("처리 중인 데이터: {}", data);
 
-// 경고 로그
-CSHUtils.Logging.warn(MyClass.class, "Warning message");
+// INFO - 일반적인 정보성 메시지
+Logging.info("애플리케이션 시작");
 
-// 에러 로그
-CSHUtils.Logging.error(MyClass.class, "Error message");
+// WARN - 경고 메시지 (잠재적 문제)
+Logging.warn("성능 저하 감지");
+
+// ERROR - 오류 및 예외 상황
+Logging.error("오류 발생", exception);
+```
+
+### 2.3 기존 방식 (고급 사용자용)
+```java
+import io.csh.utils.logging.Logger;
+import io.csh.utils.logging.LoggerFactory;
+
+Logger logger = LoggerFactory.getLogger(MyClass.class);
+logger.info("메시지");
 ```
 
 ## 3. 로그 설정
@@ -45,141 +59,204 @@ CSHUtils.Logging.error(MyClass.class, "Error message");
 ```java
 import io.csh.utils.logging.LogLevel;
 
-// 로그 레벨 설정
-CSHUtils.Logging.setLogLevel(LogLevel.DEBUG);
+// 런타임에 로그 레벨 변경
+Logging.setLogLevel(LogLevel.DEBUG);
+
+// 현재 로그 레벨 확인
+LogLevel currentLevel = Logging.getLogLevel();
 ```
 
-### 3.2 로그 포맷 설정
-```java
-// 로그 포맷 설정
-CSHUtils.Logging.setLogFormat("[%timestamp%] [%level%] [%class%] %message%");
+### 3.2 시스템 프로퍼티로 설정
+```bash
+# JVM 옵션으로 설정
+-Dcsh.logging.level=DEBUG
+
+# 환경 변수로 설정
+export CSH_LOGGING_LEVEL=INFO
 ```
 
-## 4. Java Agent에서 사용
+### 3.3 설정 우선순위
+1. **런타임 설정**: `Logging.setLogLevel(LogLevel.DEBUG)`
+2. **시스템 프로퍼티**: `-Dcsh.logging.level=INFO`
+3. **환경 변수**: `CSH_LOGGING_LEVEL=WARN`
+4. **기본값**: `INFO`
+
+## 4. 조건부 로깅
+
+성능 최적화를 위해 조건부 로깅을 사용할 수 있습니다:
 
 ```java
-import io.csh.utils.integration.CSHUtils;
+// 비용이 많이 드는 연산의 경우
+if (Logging.isDebugEnabled()) {
+    String expensiveData = generateExpensiveDebugData();
+    Logging.debug("디버그 데이터: {}", expensiveData);
+}
+
+// 조건부 INFO 로깅
+if (Logging.isInfoEnabled()) {
+    Logging.info("정보 메시지");
+}
+```
+
+## 5. Java Agent에서 사용
+
+```java
+import io.csh.utils.logging.Logging;
 
 public class YourAgent {
     public static void premain(String agentArgs) {
-        // 로그 기록
-        CSHUtils.Logging.info(YourAgent.class, "Agent started");
-    }
-}
-```
-
-## 5. 모범 사례
-
-### 5.1 로그 메시지 작성
-- 간결하고 명확한 메시지 사용
-- 컨텍스트 정보 포함
-- 예외 정보 상세히 기록
-
-### 5.2 로그 레벨 사용
-- DEBUG: 개발 시 상세 정보
-- INFO: 일반적인 정보
-- WARN: 잠재적 문제
-- ERROR: 심각한 문제
-
-### 5.3 성능 고려
-- 불필요한 로그 최소화
-- 로그 레벨 적절히 설정
-- 로그 포맷 최적화
-
-## 6. 문제 해결
-
-### 6.1 일반적인 문제
-- 로그 파일 접근 권한
-- 로그 파일 크기 관리
-- 로그 레벨 설정
-
-### 6.2 디버깅
-- 로그 레벨 조정
-- 로그 포맷 확인
-- 예외 스택 트레이스 확인
-
-## 주의사항
-1. Java Agent 환경에서 사용 가능
-2. 외부 의존성 없이 순수 Java로 구현
-3. 메인 애플리케이션의 클래스패스에 의존하지 않음
-4. 가벼운 구현으로 성능 영향 최소화
-
-## 예제 코드
-```java
-import io.csh.utils.logging.Log;
-
-public class Example {
-    public void process() {
-        // 기본 로깅
-        Log.trace("Detailed trace information");
-        Log.debug("Debug information");
-        Log.info("General information");
-        Log.warn("Warning message");
-        Log.error("Error message");
-        Log.fatal("Fatal error message");
-
-        // 예외 로깅
+        // 간편한 로깅 사용
+        Logging.info("Agent 시작");
+        
         try {
-            // ... some code ...
+            // Agent 초기화 작업
+            Logging.debug("Agent 초기화 중...");
         } catch (Exception e) {
-            Log.error("Error occurred", e);
+            Logging.error("Agent 초기화 실패", e);
         }
-
-        // 중복 제어 로깅
-        Log.info("request-123", "Processing request", 60);
     }
 }
 ```
 
-## 로그 레벨
+## 6. 로그 포맷
 
-1. **TRACE**
-   - 가장 상세한 디버깅 정보
-   - 개발 시에만 사용 권장
+로그는 다음과 같은 형식으로 출력됩니다:
 
-2. **DEBUG**
-   - 개발 시 디버깅 정보
-   - 프로덕션 환경에서는 비활성화 권장
+```
+2024-06-18 14:30:45.123 [main] INFO  MyClass - 애플리케이션 시작
+2024-06-18 14:30:45.124 [main] DEBUG MyClass - 데이터 처리 중
+2024-06-18 14:30:45.125 [main] WARN  MyClass - 성능 저하 감지
+2024-06-18 14:30:45.126 [main] ERROR MyClass - 오류 발생
+java.lang.RuntimeException: 테스트 예외
+    at MyClass.method(MyClass.java:10)
+    ...
+```
 
-3. **INFO**
-   - 일반적인 정보
-   - 애플리케이션 동작 상태
+포맷 구성:
+- **타임스탬프**: `yyyy-MM-dd HH:mm:ss.SSS`
+- **스레드명**: 실행 중인 스레드 이름
+- **로그 레벨**: TRACE, DEBUG, INFO, WARN, ERROR
+- **클래스명**: 로그를 호출한 클래스 (자동 감지)
+- **메시지**: 실제 로그 내용
 
-4. **WARN**
-   - 잠재적인 문제
-   - 주의가 필요한 상황
+## 7. 모범 사례
 
-5. **ERROR**
-   - 오류 발생
-   - 예외 처리 필요
+### 7.1 로그 메시지 작성
+```java
+// 좋은 예
+Logging.info("사용자 {} 로그인 성공", userId);
+Logging.error("파일 {} 읽기 실패: {}", fileName, e.getMessage(), e);
 
-6. **FATAL**
-   - 치명적인 오류
-   - 애플리케이션 종료 필요
+// 나쁜 예
+Logging.info("로그인");
+Logging.error("오류");
+```
 
-## 모범 사례
+### 7.2 로그 레벨 사용 가이드
+- **TRACE**: 메서드 진입/종료, 변수 값 추적
+- **DEBUG**: 조건문 분기, 중간 결과값, 성능 측정
+- **INFO**: 애플리케이션 시작/종료, 주요 비즈니스 로직
+- **WARN**: 성능 저하 가능성, 권장되지 않는 사용법
+- **ERROR**: 예외 발생, 시스템 오류, 복구 불가능한 상황
 
-1. **로그 메시지 작성**
-   ```java
-   // 좋은 예
-   Log.error("사용자 {} 처리 실패: {}", userId, e.getMessage(), e);
-   
-   // 나쁜 예
-   Log.error("오류 발생");
-   ```
+### 7.3 성능 고려사항
+```java
+// 비용이 많이 드는 연산은 조건부 로깅 사용
+if (Logging.isDebugEnabled()) {
+    String expensiveData = generateExpensiveDebugData();
+    Logging.debug("디버그 데이터: {}", expensiveData);
+}
 
-2. **성능 고려사항**
-   - 불필요한 로그 레벨 비활성화
-   - 로그 메시지에 객체 직렬화 최소화
+// 문자열 연결 대신 조건부 로깅 사용
+// 나쁜 예: Logging.debug("데이터: " + expensiveObject.toString());
+// 좋은 예: if (Logging.isDebugEnabled()) { Logging.debug("데이터: {}", expensiveObject); }
+```
 
-3. **보안 고려사항**
-   - 민감한 정보 로깅 금지
+## 8. 완전한 예제
 
-## 관련 문서
+```java
+import io.csh.utils.logging.Logging;
+import io.csh.utils.logging.LogLevel;
+
+public class MyApplication {
+    public static void main(String[] args) {
+        // 로그 레벨 설정
+        Logging.setLogLevel(LogLevel.DEBUG);
+        
+        Logging.info("애플리케이션 시작");
+        
+        try {
+            processData();
+        } catch (Exception e) {
+            Logging.error("애플리케이션 오류", e);
+        }
+        
+        Logging.info("애플리케이션 종료");
+    }
+    
+    private static void processData() {
+        Logging.trace("processData() 메서드 진입");
+        
+        if (Logging.isDebugEnabled()) {
+            Logging.debug("데이터 처리 시작");
+        }
+        
+        // 데이터 처리 로직
+        for (int i = 0; i < 10; i++) {
+            if (i == 5) {
+                Logging.warn("중간 지점 도달");
+            }
+            
+            if (Logging.isTraceEnabled()) {
+                Logging.trace("처리 중: {}", i);
+            }
+        }
+        
+        Logging.trace("processData() 메서드 종료");
+    }
+}
+```
+
+## 9. 문제 해결
+
+### 9.1 로그가 출력되지 않는 경우
+1. 로그 레벨 확인: `Logging.getLogLevel()`
+2. 로그 레벨 설정: `Logging.setLogLevel(LogLevel.DEBUG)`
+3. 시스템 프로퍼티 확인: `-Dcsh.logging.level=DEBUG`
+
+### 9.2 클래스명이 잘못 표시되는 경우
+- 스택 트레이스 기반으로 자동 감지되므로 정상 동작
+- 필요시 기존 방식 사용: `LoggerFactory.getLogger(MyClass.class)`
+
+## 10. 주의사항
+
+1. **Java Agent 호환성**: 클래스로더 분리 환경에서 안정적 동작
+2. **외부 의존성 없음**: 순수 Java만 사용
+3. **가벼운 구현**: 메모리 사용량 최소화
+4. **스레드 안전**: 멀티스레드 환경에서 안전하게 사용 가능
+
+## 11. 관련 문서
+
 - [설계 문서](../design/logging.md)
-- [모듈 README](../../logging/README.md)
-- [릴리즈 노트](../releases/logging-1.0.0.md)
+- [모듈 README](../modules/logging/README.md)
 - [Output 모듈 가이드](output.md) - 파일 출력 기능이 필요한 경우 참조
 
-## 예제 프로젝트
-전체 예제는 [예제 프로젝트](https://github.com/csh-utils/logging-example)를 참조하세요. 
+## 12. 마이그레이션 가이드
+
+### 기존 코드에서 새로운 방식으로 변경
+
+**기존 방식:**
+```java
+Logger logger = LoggerFactory.getLogger(MyClass.class);
+logger.info("메시지");
+```
+
+**새로운 방식:**
+```java
+Logging.info("메시지");
+```
+
+**변경 사항:**
+- `LoggerFactory.getLogger()` 제거
+- `Logging.` 접두사로 변경
+- 클래스명 자동 감지로 수동 지정 불필요 

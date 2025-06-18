@@ -1,8 +1,6 @@
 package io.csh.utils.banner;
 
-import io.csh.utils.banner.core.BannerConfig;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * 배너 출력 테스트

@@ -161,6 +161,12 @@ public class BannerInfo {
         private String customAsciiArt;
 
         /**
+         * BannerInfo.Builder를 생성합니다.
+         */
+        public Builder() {
+        }
+
+        /**
          * 이름을 설정합니다.
          * @param name 애플리케이션 이름
          * @return Builder
