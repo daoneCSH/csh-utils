@@ -1,105 +1,192 @@
-# AppBanner 사용법 및 옵션 안내
+# Banner Guide
 
-## 기본 동작
-- 별도의 설정 없이 AppBanner를 생성하면 BASIC 스타일의 ASCII 아트가 기본으로 출력됩니다.
-- 배너의 옵션 정보(앱 이름, 버전, 빌드 정보 등)는 테두리로 감싸서 출력됩니다.
-- ASCII 아트는 테두리 없이 자유롭게 출력됩니다.
-- 커스텀 메시지는 빈 줄과 함께 테두리 안에 출력됩니다.
+## Overview
 
-## 주요 옵션
-| 옵션                | 설명                                                         |
-|---------------------|--------------------------------------------------------------|
-| name(String)        | 애플리케이션 이름                                            |
-| version(String)     | 애플리케이션 버전                                            |
-| theme(BannerTheme)  | 배너 테마 (DEFAULT, COLORFUL 등)                             |
-| borderStyle(BorderStyle) | 옵션 정보에 적용할 테두리 스타일 (SIMPLE, DOUBLE, NONE 등) |
-| asciiArt(String)    | 사용자 정의 ASCII 아트 지정                                   |
-| showAsciiArt(boolean) | ASCII 아트 출력 여부 (false로 설정 시 아트 미출력)           |
-| customMessage(String) | 사용자 정의 메시지 (빈 줄과 함께 테두리 안에 출력)           |
-| showBuildInfo(boolean) | 빌드 정보 표시 여부                                         |
-| showSystemInfo(boolean) | 시스템 정보 표시 여부                                       |
+`csh-utils-banner`는 애플리케이션 시작 시 콘솔에 배너를 출력하는 유틸리티입니다.
 
-## 사용 예시
+## Features
 
-### 1. 기본 배너 출력
+- ASCII 아트 배너 출력
+- 커스텀 메시지 추가
+- 다양한 테두리 스타일 지원
+- Spring Boot 통합 지원
+
+## Usage
+
+### Basic Usage
+
 ```java
-AppBanner banner = new AppBanner.Builder()
-    .name("MyApp")
-    .version("1.0.0")
-    .build();
-banner.print();
-```
-- BASIC ASCII 아트와 SIMPLE 테두리로 옵션 정보가 출력됩니다.
+// 기본 배너 출력
+AppBanner.createDefault().print();
 
-### 2. ASCII 아트 없이 출력
-```java
-AppBanner banner = new AppBanner.Builder()
-    .name("MyApp")
-    .version("1.0.0")
-    .showAsciiArt(false)
-    .build();
-banner.print();
-```
-- 옵션 정보만 테두리로 출력되고, ASCII 아트는 출력되지 않습니다.
-
-### 3. 테두리 없이 출력
-```java
-AppBanner banner = new AppBanner.Builder()
-    .name("MyApp")
-    .version("1.0.0")
-    .borderStyle(BorderStyle.NONE)
-    .build();
-banner.print();
-```
-- 옵션 정보도 테두리 없이 출력됩니다.
-
-### 4. 커스텀 메시지와 테두리 스타일
-```java
-AppBanner banner = new AppBanner.Builder()
-    .name("MyApp")
-    .version("1.0.0")
-    .customMessage("Welcome to MyApp!")
-    .borderStyle(BorderStyle.BOLD)
-    .build();
-banner.print();
-```
-- 커스텀 메시지가 빈 줄과 함께 테두리 안에 출력됩니다.
-
-### 5. 모든 옵션 조합
-```java
-AppBanner banner = new AppBanner.Builder()
-    .name("MyApp")
-    .version("1.0.0")
-    .theme(BannerTheme.COLORFUL)
-    .borderStyle(BorderStyle.DOUBLE)
-    .customMessage("Welcome to MyApp!")
+// 커스텀 배너 생성
+AppBanner.builder()
+    .message("Welcome to My Application!")
     .showAsciiArt(true)
-    .showBuildInfo(true)
-    .showSystemInfo(true)
-    .build();
-banner.print();
+    .borderStyle("double")
+    .build()
+    .print();
 ```
 
-## 출력 예시
+### Spring Boot Integration
+
+```java
+@SpringBootApplication
+public class MyApplication {
+    public static void main(String[] args) {
+        SpringApplication app = new SpringApplication(MyApplication.class);
+        
+        // 배너 설정
+        AppBanner.builder()
+            .message("My Spring Boot Application")
+            .showAsciiArt(true)
+            .borderStyle("round")
+            .build()
+            .print();
+            
+        app.run(args);
+    }
+}
 ```
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ MyApp                             ┃
-┃ Version: 1.0.0                    ┃
-┃ Build Time: 2025-06-17 10:20:13   ┃
-┃ Java Version: 24.0.1              ┃
-┃ OS: Windows 11 10.0 (amd64)       ┃
-┃                                   ┃
-┃ Welcome to MyApp!                 ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+## Border Styles
+
+다음 테두리 스타일을 지원합니다:
+
+- `simple`: 기본 테두리
+- `double`: 이중 테두리
+- `round`: 둥근 모서리 테두리
+- `bold`: 굵은 테두리
+- `dashed`: 점선 테두리
+- `dotted`: 점 테두리
+
+## Dependencies
+
+```xml
+<dependency>
+    <groupId>io.csh</groupId>
+    <artifactId>csh-utils-banner</artifactId>
+    <version>${csh-utils.version}</version>
+</dependency>
 ```
 
-## 참고 사항
-- ASCII 아트는 항상 테두리 없이 출력되며, 옵션 정보(앱 이름, 버전 등)만 테두리로 감싸집니다.
-- `showAsciiArt(false)`로 설정하면 ASCII 아트가 출력되지 않습니다.
-- 커스텀 메시지는 `customMessage(String)`으로 지정할 수 있으며, 빈 줄과 함께 테두리 안에 출력됩니다.
-- 최소 정보만 출력하고 싶다면 `showBuildInfo(false)`, `showSystemInfo(false)` 옵션을 활용하세요.
-- 테두리 스타일은 `borderStyle(BorderStyle)`로 지정할 수 있으며, 옵션 정보에만 적용됩니다.
+## Examples
 
----
+### Default Banner
+```
+                ___  ___  _  _       _   _  _____  ___  _     ___
+               / __|/ __|| || | ___ | | | ||_   _||_ _|| |   / __|
+              | (__ \\__ \\| __ ||___|| |_| |  | |   | | | | |__ \\__ \\
+               \\___||___/|_||_|      \\___/   |_|  |___||____||___/
+```
 
-최신 AppBanner 동작 및 옵션은 위와 같습니다. 추가 문의나 개선 요청은 언제든 환영합니다. 
+### Custom Banner with Message
+```
++------------------------------------------+
+|                                          |
+|                ___  ___  _  _            |
+|               / __|/ __|| || | ___       |
+|              | (__ \\__ \\| __ ||___|      |
+|               \\___||___/|_||_|           |
+|                                          |
+| Welcome to My Application!               |
+|                                          |
++------------------------------------------+
+```
+
+## Design Principles
+1. **Simplicity**: Focus on core functionality
+2. **Default First**: Provide sensible defaults
+3. **Minimal Configuration**: Only essential options exposed
+
+## Components
+
+### BannerInfo
+Contains the information to be displayed:
+- Application name
+- Version
+- Build time
+- Java version
+- OS information
+- Custom message (optional)
+
+### BannerConfig
+Controls display settings:
+- ASCII art visibility (default: true)
+- Border style (default: simple)
+
+### BannerRenderer
+Handles the actual banner rendering:
+- Default ASCII art
+- Information formatting
+- Border generation
+
+### AppBanner
+Main entry point for users:
+- Builder pattern for configuration
+- Default banner creation
+- Print functionality
+
+## Best Practices
+1. Use default banner when possible
+2. Only configure when necessary
+3. Keep custom messages concise
+4. Use appropriate border style for your environment
+
+## Troubleshooting
+- If ASCII art is not displaying correctly, check your terminal's character encoding
+- For border display issues, ensure your terminal supports the chosen border style
+
+## Spring Boot Integration
+
+### 1. Using Banner in Spring Boot Application
+```java
+@SpringBootApplication
+public class MyApplication {
+    public static void main(String[] args) {
+        SpringApplication app = new SpringApplication(MyApplication.class);
+        
+        // Set banner
+        AppBanner banner = AppBanner.builder()
+            .name("MyApp")
+            .version("1.0.0")
+            .config(BannerConfig.builder()
+                .borderStyle("double")
+                .build())
+            .build();
+            
+        // Disable Spring Boot banner
+        app.setBannerMode(Banner.Mode.OFF);
+        
+        // Print custom banner
+        banner.print();
+        
+        app.run(args);
+    }
+}
+```
+
+### 2. Spring Boot Auto Configuration
+```java
+@Configuration
+public class BannerAutoConfiguration {
+    @Bean
+    public AppBanner appBanner() {
+        return AppBanner.builder()
+            .name("MyApp")
+            .version("1.0.0")
+            .config(BannerConfig.builder()
+                .borderStyle("double")
+                .build())
+            .build();
+    }
+}
+```
+
+## Related Documents
+- [Design Document](../design/banner.md)
+- [Module README](../../banner/README.md)
+- [Release Notes](../releases/banner-1.0.0.md)
+
+## Example Project
+For complete examples, refer to the [Example Project](https://github.com/csh-utils/banner-example). 

@@ -1,100 +1,198 @@
+# 출력 모듈 가이드
+
+## 1. 소개
+
+출력 모듈은 Java 애플리케이션의 표준 출력과 에러 스트림을 관리하고, 출력을 파일로 캡처하는 기능을 제공합니다. 이 모듈은 Java Agent와 일반 Java 애플리케이션 모두에서 사용할 수 있습니다.
+
+## 2. 기본 사용
+
+### 2.1 기본 출력
+```java
+import io.csh.utils.integration.CSHUtils;
+
+// 일반 출력
+CSHUtils.Output.write("Normal message");
+
+// 에러 출력
+CSHUtils.Output.writeError("Error message");
+```
+
+### 2.2 출력 캡처
+```java
+import io.csh.utils.output.OutputCapture;
+import io.csh.utils.output.OutputWriter;
+import io.csh.utils.output.OutputWriterFactory;
+
+// 파일로 출력 캡처
+String fileName = "my-output";
+OutputWriter writer = OutputWriterFactory.getWriter(fileName);
+try (OutputCapture capture = OutputCapture.create(writer)) {
+    capture.start();
+    // ... 출력이 발생하는 코드 ...
+    capture.stop();
+}
+// 캡처된 출력은 logs/my-output_YYYY-MM-DD.log 파일에 저장됩니다.
+```
+
+## 3. 출력 설정
+
+### 3.1 출력 대상 설정
+```java
+// 파일로 출력
+OutputWriter writer = OutputWriterFactory.getWriter("output.log");
+CSHUtils.Output.setWriter(writer);
+
+// 콘솔로 출력
+CSHUtils.Output.setWriter(OutputWriterFactory.getConsoleWriter());
+```
+
+### 3.2 출력 포맷 설정
+```java
+// 출력 포맷 설정
+CSHUtils.Output.setFormat("[%timestamp%] %message%");
+```
+
+## 4. Java Agent에서 사용
+
+```java
+import io.csh.utils.integration.CSHUtils;
+import io.csh.utils.output.OutputCapture;
+import io.csh.utils.output.OutputWriter;
+import io.csh.utils.output.OutputWriterFactory;
+
+public class YourAgent {
+    public static void premain(String agentArgs) {
+        // 출력 캡처 시작
+        String fileName = "agent-output";
+        OutputWriter writer = OutputWriterFactory.getWriter(fileName);
+        OutputCapture capture = OutputCapture.create(writer);
+        capture.start();
+    }
+}
+```
+
+## 5. 모범 사례
+
+### 5.1 출력 메시지 작성
+- 간결하고 명확한 메시지 사용
+- 적절한 출력 대상 선택
+- 에러 메시지 상세히 기록
+
+### 5.2 출력 캡처
+- 필요한 시점에만 캡처 시작
+- 리소스 관리 주의
+- 파일 크기 고려
+
+### 5.3 성능 고려
+- 불필요한 출력 최소화
+- 출력 포맷 최적화
+- 파일 I/O 최소화
+
+## 6. 문제 해결
+
+### 6.1 일반적인 문제
+- 파일 접근 권한
+- 파일 크기 관리
+- 출력 버퍼 관리
+
+### 6.2 디버깅
+- 출력 대상 확인
+- 출력 포맷 확인
+- 파일 경로 확인
+
 # Output 모듈 사용 가이드
 
 ## 개요
 Output 모듈은 Java Agent 호환성을 고려한 간단하고 가벼운 파일 출력 기능을 제공합니다.
 
 ## 주요 기능
-- 기본 파일 출력 작업
-- 파일 로테이션 지원
-- 자동 디렉토리 생성
+- 파일 기반 출력
+- 자동 파일 로테이션 (일자별)
+- 버퍼링된 출력
 - 스레드 안전 구현
 - 외부 의존성 없음
+- Java Agent 호환성 보장
 
 ## 의존성 추가
 ```xml
 <dependency>
-    <groupId>io.csh.utils</groupId>
+    <groupId>io.csh</groupId>
     <artifactId>output</artifactId>
-    <version>${csh.utils.version}</version>
+    <version>1.0.0-SNAPSHOT</version>
 </dependency>
-```
-
-## 설정
-
-### 시스템 프로퍼티
-```properties
-# 출력 디렉토리 경로 (기본값: logs)
-csh.output.file.path=logs
-
-# 기존 파일 덮어쓰기 (기본값: false)
-csh.output.overwrite=false
-
-# 파일 로테이션 사용 (기본값: true)
-csh.output.rotation.enabled=true
-
-# 파일 보관 기간 (기본값: 30일)
-csh.output.keep.days=30
 ```
 
 ## 사용 방법
 
-### 기본 사용법
+### 1. 기본 사용법
 ```java
 import io.csh.utils.output.OutputWriter;
 import io.csh.utils.output.OutputWriterFactory;
 
-// 기본 설정으로 작성기 생성
+// 기본 출력
 OutputWriter writer = OutputWriterFactory.getWriter("application");
-
-// 메시지 쓰기
-writer.writeLine("테스트 메시지입니다");
-writer.writeLine("다른 테스트 메시지입니다");
-
-// 버퍼 비우기
+writer.writeLine("Hello, World!");
 writer.flush();
-
-// 사용 완료 후 닫기
 writer.close();
 ```
 
-### 커스텀 설정
-```java
-import io.csh.utils.output.config.OutputConfig;
+### 2. 출력 설정
+시스템 프로퍼티로 출력 설정을 할 수 있습니다:
+```properties
+# 출력 경로 (기본값: ./logs)
+csh.output.path=./logs
 
-OutputConfig config = new OutputConfig();
-config.setOutputPath("custom-logs");
-config.setRotationEnabled(true);
-config.setKeepDays(7);
+# 파일 덮어쓰기 여부 (기본값: false)
+csh.output.overwrite=false
 
-OutputWriter writer = OutputWriterFactory.getWriter("custom", config);
+# 파일 로테이션 사용 여부 (기본값: true)
+csh.output.rotation.enabled=true
 ```
 
-### 로깅 모듈과의 연동
-Output 모듈은 로깅 모듈에서 자동으로 사용됩니다. 로깅 모듈을 사용하면 모든 로그 메시지가 output 모듈을 통해 파일에 기록됩니다.
+## 주의사항
+1. Java Agent 환경에서 사용 가능
+2. 외부 의존성 없이 순수 Java로 구현
+3. 메인 애플리케이션의 클래스패스에 의존하지 않음
+4. 가벼운 구현으로 성능 영향 최소화
 
+## 예제 코드
 ```java
-import io.csh.utils.logging.Log;
+import io.csh.utils.output.OutputWriter;
+import io.csh.utils.output.OutputWriterFactory;
 
-// 이 메시지들은 output 파일에 기록됩니다
-Log.info("정보 메시지입니다");
-Log.error("에러 메시지입니다");
+public class Example {
+    public void process() {
+        // 기본 출력
+        OutputWriter writer = OutputWriterFactory.getWriter("application");
+        
+        try {
+            // 단일 라인 출력
+            writer.writeLine("Processing started");
+            
+            // 여러 라인 출력
+            writer.write("Step 1: ");
+            writer.write("Completed");
+            writer.writeLine();
+            
+            // 버퍼 플러시
+            writer.flush();
+        } finally {
+            // 리소스 해제
+            writer.close();
+        }
+    }
+}
 ```
 
 ## 파일 로테이션
-파일 로테이션이 활성화된 경우:
-- 파일은 날짜 기반으로 이름이 지정됩니다 (예: application-2024-03-20.log)
-- 자정에 자동으로 새 파일이 생성됩니다
-- 오래된 파일은 설정된 일수 동안 보관됩니다
+- 기본적으로 일자별로 파일이 로테이션됩니다.
+- 파일명 형식: `{name}-{yyyy-MM-dd}.log`
+- 로테이션이 비활성화된 경우: `{name}.log`
 
-## 스레드 안전성
-Output 모듈은 스레드 안전하며, 추가적인 동기화 없이도 다중 스레드 환경에서 사용할 수 있습니다.
-
-## Java Agent 호환성
-이 모듈은 Java Agent 환경에서 작동하도록 설계되었습니다:
-- 외부 의존성 없음
-- 순수 Java 기능만 사용
-- 가벼운 구현
-- 클래스로더 격리 지원
+## 에러 처리
+- 파일 생성/쓰기 실패 시 System.err에 에러 메시지 출력
+- 리소스 해제는 close() 메서드에서 처리
+- 버퍼링된 출력으로 성능 최적화
 
 ## 관련 문서
 - [설계 문서](../design/output.md)

@@ -1,183 +1,139 @@
-# 출력 캡처 모듈 설계 문서
+# Output 모듈 설계
 
-## 아키텍처 개요
+## 개요
+Output 모듈은 Java Agent 호환성을 고려한 간단하고 가벼운 파일 출력 기능을 제공합니다. 최소한의 의존성으로 파일 쓰기, 로테이션, 관리를 처리합니다.
 
-### 핵심 컴포넌트
-1. **OutputCapture**
-   - 출력 캡처 기능의 메인 클래스
-   - 시스템 출력 리다이렉션 관리
-   - 초기화 및 종료 처리
-   - 설정 관리
+## 설계 목표
+- Java Agent 환경 호환성
+- 최소한의 의존성
+- 가벼운 구현
+- 쉬운 설정
+- 스레드 안전성
+- 파일 관리 기능
 
-2. **OutputStreamWrapper**
-   - System.out과 System.err 래핑
-   - 스레드 안전한 출력 처리
-   - 출력 큐 관리
+## 아키텍처
 
-3. **FileManager**
-   - 파일 작업 처리
-   - 파일 로테이션 관리
-   - 압축 제어
-   - 보관 정책 관리
-
-4. **QueueManager**
-   - 출력 큐 관리
-   - 비동기 쓰기 처리
-   - 버퍼 크기 제어
-
-## 클래스 다이어그램
-
-```mermaid
-classDiagram
-    class OutputCapture {
-        -static OutputCapture instance
-        -OutputStreamWrapper outWrapper
-        -OutputStreamWrapper errWrapper
-        -FileManager fileManager
-        -QueueManager queueManager
-        +getInstance() OutputCapture
-        +initialize() void
-        +shutdown() void
-        +printConfig() String
-    }
-
-    class OutputStreamWrapper {
-        -OutputStream original
-        -QueueManager queueManager
-        +write(int) void
-        +flush() void
-        +close() void
-    }
-
-    class FileManager {
-        -Path outputDir
-        -String fileName
-        -long maxFileSize
-        -int maxFiles
-        -int retentionDays
-        -boolean compressionEnabled
-        -String compressionFormat
-        +write(String) void
-        +rotate() void
-        +compress() void
-        +cleanup() void
-    }
-
-    class QueueManager {
-        -BlockingQueue<String> queue
-        -Thread worker
-        +add(String) void
-        +process() void
-        +shutdown() void
-    }
-
-    OutputCapture --> OutputStreamWrapper
-    OutputCapture --> FileManager
-    OutputCapture --> QueueManager
-    OutputStreamWrapper --> QueueManager
-    QueueManager --> FileManager
+### 1. 패키지 구조
+```
+io.csh.utils.output
+├── OutputWriter.java           # 출력 작성기 인터페이스
+├── FileOutputWriter.java       # 파일 출력 작성기
+├── OutputWriterFactory.java    # 출력 작성기 팩토리
+└── OutputCapture.java          # 출력 캡처
 ```
 
-## 설계 결정사항
+### 2. 클래스 다이어그램
+```
+OutputWriter (인터페이스)
+    ↑
+FileOutputWriter
+    ↑
+OutputWriterFactory
+```
 
-### 1. 싱글톤 패턴
-- **장점**
-  - 단일 인스턴스로 일관된 출력 처리 보장
-  - 출력 캡처에 대한 전역 접근점 제공
-  - 리소스 관리 단순화
+## 주요 클래스 설명
 
-- **단점**
-  - 테스트 복잡성
-  - 잠재적 메모리 누수
-  - 유연성 제한
+### 1. OutputWriter 인터페이스
+```java
+public interface OutputWriter {
+    void writeLine(String line);
+    void flush();
+}
+```
+- 기본 파일 출력 작업 정의
+- 파일 쓰기에 대한 깔끔한 추상화 제공
+- 라인 단위 쓰기 지원
 
-### 2. 비동기 처리
-- **장점**
-  - 더 나은 성능
-  - 비차단 출력
-  - I/O 오버헤드 감소
+### 2. FileOutputWriter
+```java
+public class FileOutputWriter implements OutputWriter {
+    public static FileOutputWriter getInstance(String name);
+    public void writeLine(String line);
+    public void flush();
+}
+```
+- OutputWriter 인터페이스 구현
+- 파일 생성 및 관리 처리
+- 파일 로테이션 지원
+- 파일 리소스 관리
 
-- **단점**
-  - 복잡한 오류 처리
-  - 잠재적 데이터 손실
-  - 메모리 사용량
+### 3. OutputWriterFactory
+```java
+public final class OutputWriterFactory {
+    public static OutputWriter getWriter(String name);
+}
+```
+- OutputWriter 인스턴스 관리
+- 스레드 안전한 접근 제공
+- 리소스 정리 처리
 
-### 3. 파일 관리
-- **장점**
-  - 체계적인 파일 관리
-  - 자동 로테이션
-  - 압축 및 보관 정책
+### 4. OutputCapture
+```java
+public final class OutputCapture {
+    public static OutputCapture getInstance();
+    public void start();
+    public void stop();
+    public String getOutput();
+    public String getError();
+    public void clear();
+}
+```
+- 표준 출력과 에러 출력 캡처
+- 출력 스트림 관리
+- 캡처된 출력 조회
 
-- **단점**
-  - 디스크 공간 관리
-  - 복잡한 파일 명명
-  - 잠재적 파일 시스템 문제
+## 스레드 안전성
+- ConcurrentHashMap으로 작성기 관리
+- 파일 접근을 위한 원자적 연산
+- 동기화된 파일 쓰기
+- 스레드 안전한 설정
 
-### 4. 설정 관리
-- **장점**
-  - 유연한 설정
-  - 런타임 설정
-  - 다중 설정 소스
+## 파일 로테이션 전략
+1. **일별 로테이션**
+   - 날짜 기반 파일명 (YYYY-MM-DD)
+   - 자정에 새 파일 생성
+   - 설정된 일수 동안 보관
 
-- **단점**
-  - 복잡한 유효성 검사
-  - 잠재적 충돌
-  - 문서화 오버헤드
+2. **정리**
+   - 오래된 파일 자동 제거
+   - 설정된 보관 기간 기반
+   - 로테이션 중 처리
+
+## 오류 처리
+- 우아한 실패 처리
+- System.err로 오류 로깅
+- 오류 발생 시 리소스 정리
+- 스레드 안전한 오류 처리
 
 ## 성능 고려사항
-
-### 메모리 사용
-- 큐 크기 관리
-- 버퍼 최적화
+- 버퍼링된 쓰기
+- 효율적인 파일 로테이션
+- 최소한의 메모리 사용
 - 리소스 정리
 
-### I/O 최적화
-- 배치 쓰기
-- 압축 전략
-- 파일 시스템 캐싱
+## Java Agent 호환성
+- 외부 의존성 없음
+- 순수 Java 구현
+- 클래스로더 격리 지원
+- 최소한의 리소스 사용
 
-### 동시성
-- 스레드 안전성
-- 락 최소화
-- 큐 관리
+## 사용 예시
+```java
+// 기본 사용
+OutputWriter writer = OutputWriterFactory.getWriter("application");
+writer.writeLine("Log message");
 
-## 보안 고려사항
+// 출력 캡처
+OutputCapture capture = OutputCapture.getInstance();
+capture.start();
+System.out.println("Captured output");
+String output = capture.getOutput();
+capture.stop();
+```
 
-### 파일 접근
-- 권한 관리
-- 안전한 파일 생성
-- 접근 제어
-
-### 리소스 관리
-- 리소스 정리
-- 메모리 관리
-- 파일 핸들 관리
-
-## 확장성
-
-### 플러그인 아키텍처
-- 커스텀 출력 핸들러
-- 형식 플러그인
-- 저장소 플러그인
-
-### 모니터링
-- 성능 메트릭
-- 리소스 사용량
-- 오류 추적
-
-## 향후 개선 계획
-
-### 기능
-- 커스텀 출력 형식
-- 다중 출력 대상
-- 고급 필터링
-
-### 성능
-- 향상된 압축
-- 더 나은 메모리 관리
-- 개선된 동시성
-
-### 모니터링
-- 실시간 메트릭
-- 알림 시스템
-- 상태 확인 
+## 향후 개선 사항
+- 비동기 쓰기 지원
+- 압축 지원
+- 암호화 지원
+- 다양한 출력 형식
+- 파일 로테이션 기능 개선 

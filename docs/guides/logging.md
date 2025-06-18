@@ -1,181 +1,185 @@
-# 로깅 모듈 사용 가이드
+# 로깅 모듈 가이드
 
-## 목차
-1. [시작하기](#시작하기)
-2. [기본 사용법](#기본-사용법)
-3. [고급 기능](#고급-기능)
-4. [설정](#설정)
-5. [모범 사례](#모범-사례)
+## 1. 소개
 
-## 시작하기
+로깅 모듈은 Java 애플리케이션을 위한 간단하고 효율적인 로깅 시스템을 제공합니다. 이 모듈은 외부 의존성 없이 기본적인 로깅 기능을 제공하며, Java Agent와 일반 Java 애플리케이션 모두에서 사용할 수 있습니다.
 
-### 의존성 추가
-```xml
-<dependency>
-    <groupId>io.csh</groupId>
-    <artifactId>logging</artifactId>
-    <version>1.0.3</version>
-</dependency>
+## 2. 기본 사용
+
+### 2.1 기본 로깅
+```java
+import io.csh.utils.integration.CSHUtils;
+
+// 정보 로그
+CSHUtils.Logging.info(MyClass.class, "Info message");
+
+// 에러 로그
+CSHUtils.Logging.error(MyClass.class, "Error message");
+
+// 예외와 함께 로깅
+try {
+    // 작업 수행
+} catch (Exception e) {
+    CSHUtils.Logging.error(MyClass.class, "Error occurred", e);
+}
 ```
 
-## 기본 사용법
-
-### 1. 정적 메서드를 사용한 로깅
+### 2.2 로그 레벨
 ```java
-import io.csh.utils.logging.Logger;
+// 디버그 로그
+CSHUtils.Logging.debug(MyClass.class, "Debug message");
 
-public class StaticLoggingExample {
-    public static void main(String[] args) {
-        // 기본 로깅
-        Logger.info("애플리케이션이 시작되었습니다.");
-        
-        // 예외 정보 포함 로깅
-        try {
-            // ... 코드 ...
-        } catch (Exception e) {
-            Logger.error("오류가 발생했습니다.", e);
-        }
-        
-        // 다양한 로그 레벨 사용
-        Logger.trace("상세 디버깅 정보");
-        Logger.debug("디버그 정보");
-        Logger.info("일반 정보");
-        Logger.warn("경고 메시지");
-        Logger.error("오류 메시지");
-        Logger.fatal("치명적 오류 메시지");
+// 정보 로그
+CSHUtils.Logging.info(MyClass.class, "Info message");
+
+// 경고 로그
+CSHUtils.Logging.warn(MyClass.class, "Warning message");
+
+// 에러 로그
+CSHUtils.Logging.error(MyClass.class, "Error message");
+```
+
+## 3. 로그 설정
+
+### 3.1 로그 레벨 설정
+```java
+import io.csh.utils.logging.LogLevel;
+
+// 로그 레벨 설정
+CSHUtils.Logging.setLogLevel(LogLevel.DEBUG);
+```
+
+### 3.2 로그 포맷 설정
+```java
+// 로그 포맷 설정
+CSHUtils.Logging.setLogFormat("[%timestamp%] [%level%] [%class%] %message%");
+```
+
+## 4. Java Agent에서 사용
+
+```java
+import io.csh.utils.integration.CSHUtils;
+
+public class YourAgent {
+    public static void premain(String agentArgs) {
+        // 로그 기록
+        CSHUtils.Logging.info(YourAgent.class, "Agent started");
     }
 }
 ```
 
-### 2. @CshLog 어노테이션을 사용한 로깅
-```java
-import io.csh.utils.logging.CshLog;
+## 5. 모범 사례
 
-@CshLog
-public class AnnotatedLoggingExample {
-    private final String name;
-    
-    public AnnotatedLoggingExample(String name) {
-        this.name = name;
-    }
-    
-    public void process() {
-        // 자동 생성된 로거 사용
-        log.info("처리를 시작합니다: {}", name);
-        
-        try {
-            // ... 비즈니스 로직 ...
-            log.debug("중간 처리 결과: {}", result);
-        } catch (Exception e) {
-            log.error("처리 중 오류 발생", e);
-            throw e;
-        }
-        
-        log.info("처리가 완료되었습니다.");
-    }
-}
-```
+### 5.1 로그 메시지 작성
+- 간결하고 명확한 메시지 사용
+- 컨텍스트 정보 포함
+- 예외 정보 상세히 기록
 
-### 3. 로깅 설정 상태 확인
-```java
-import io.csh.utils.logging.Logger;
-
-public class LoggingConfigExample {
-    public void checkConfig() {
-        // 설정 상태 문자열 가져오기
-        String configStatus = Logger.getConfigStatus();
-        System.out.println("현재 로깅 설정:");
-        System.out.println(configStatus);
-        
-        // 또는 직접 출력하기
-        Logger.printConfigStatus();
-    }
-}
-```
-
-## 고급 기능
-
-### 1. 설정 상태 조회
-- `Logger.getConfigStatus()`: 현재 로깅 설정 상태를 문자열로 반환
-- `Logger.printConfigStatus()`: 현재 로깅 설정 상태를 콘솔에 출력
-
-### 2. 로그 레벨
-- TRACE: 가장 상세한 디버깅 정보
-- DEBUG: 개발 시 디버깅 정보
+### 5.2 로그 레벨 사용
+- DEBUG: 개발 시 상세 정보
 - INFO: 일반적인 정보
-- WARN: 경고 메시지
-- ERROR: 오류 메시지
-- FATAL: 치명적 오류 메시지
+- WARN: 잠재적 문제
+- ERROR: 심각한 문제
 
-### 3. 로그 포맷
-기본 포맷: `%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n`
-- %d: 타임스탬프
-- %thread: 스레드 이름
-- %-5level: 로그 레벨
-- %logger{36}: 로거 이름
-- %msg: 로그 메시지
-- %n: 줄바꿈
+### 5.3 성능 고려
+- 불필요한 로그 최소화
+- 로그 레벨 적절히 설정
+- 로그 포맷 최적화
 
-## 설정
+## 6. 문제 해결
 
-### 1. application.properties
-```properties
-# 로그 레벨 설정
-csh.logging.level=INFO
+### 6.1 일반적인 문제
+- 로그 파일 접근 권한
+- 로그 파일 크기 관리
+- 로그 레벨 설정
 
-# 로그 파일 설정
-csh.logging.file.path=logs
-csh.logging.file.name=application.log
-csh.logging.file.max-size=10MB
-csh.logging.file.max-total-size=1GB
-csh.logging.file.retention-days=365
+### 6.2 디버깅
+- 로그 레벨 조정
+- 로그 포맷 확인
+- 예외 스택 트레이스 확인
 
-# 로그 패턴 설정
-csh.logging.pattern=%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+## 주의사항
+1. Java Agent 환경에서 사용 가능
+2. 외부 의존성 없이 순수 Java로 구현
+3. 메인 애플리케이션의 클래스패스에 의존하지 않음
+4. 가벼운 구현으로 성능 영향 최소화
 
-# 콘솔 출력 설정
-csh.logging.console.enabled=true
+## 예제 코드
+```java
+import io.csh.utils.logging.Log;
+
+public class Example {
+    public void process() {
+        // 기본 로깅
+        Log.trace("Detailed trace information");
+        Log.debug("Debug information");
+        Log.info("General information");
+        Log.warn("Warning message");
+        Log.error("Error message");
+        Log.fatal("Fatal error message");
+
+        // 예외 로깅
+        try {
+            // ... some code ...
+        } catch (Exception e) {
+            Log.error("Error occurred", e);
+        }
+
+        // 중복 제어 로깅
+        Log.info("request-123", "Processing request", 60);
+    }
+}
 ```
 
-### 2. VM 옵션
-```bash
--Dcsh.logging.level=DEBUG
--Dcsh.logging.file.path=/path/to/logs
--Dcsh.logging.file.max-size=20MB
--Dcsh.logging.file.retention-days=30
-```
+## 로그 레벨
+
+1. **TRACE**
+   - 가장 상세한 디버깅 정보
+   - 개발 시에만 사용 권장
+
+2. **DEBUG**
+   - 개발 시 디버깅 정보
+   - 프로덕션 환경에서는 비활성화 권장
+
+3. **INFO**
+   - 일반적인 정보
+   - 애플리케이션 동작 상태
+
+4. **WARN**
+   - 잠재적인 문제
+   - 주의가 필요한 상황
+
+5. **ERROR**
+   - 오류 발생
+   - 예외 처리 필요
+
+6. **FATAL**
+   - 치명적인 오류
+   - 애플리케이션 종료 필요
 
 ## 모범 사례
 
-### 1. 로그 레벨 사용
-- TRACE: 매우 상세한 디버깅 정보
-- DEBUG: 개발 시 디버깅 정보
-- INFO: 일반적인 정보
-- WARN: 잠재적 문제
-- ERROR: 오류 상황
-- FATAL: 치명적 오류
+1. **로그 메시지 작성**
+   ```java
+   // 좋은 예
+   Log.error("사용자 {} 처리 실패: {}", userId, e.getMessage(), e);
+   
+   // 나쁜 예
+   Log.error("오류 발생");
+   ```
 
-### 2. 예외 로깅
-```java
-try {
-    // ... 코드 ...
-} catch (Exception e) {
-    log.error("오류 발생: {}", e.getMessage(), e);
-    throw e;
-}
-```
+2. **성능 고려사항**
+   - 불필요한 로그 레벨 비활성화
+   - 로그 메시지에 객체 직렬화 최소화
 
-### 3. 설정 상태 확인
-```java
-// 애플리케이션 시작 시
-Logger.printConfigStatus();
+3. **보안 고려사항**
+   - 민감한 정보 로깅 금지
 
-// 또는 설정 상태를 변수에 저장
-String configStatus = Logger.getConfigStatus();
-```
+## 관련 문서
+- [설계 문서](../design/logging.md)
+- [모듈 README](../../logging/README.md)
+- [릴리즈 노트](../releases/logging-1.0.0.md)
+- [Output 모듈 가이드](output.md) - 파일 출력 기능이 필요한 경우 참조
 
-### 4. 성능 고려사항
-- 불필요한 문자열 연결 피하기
-- 로그 레벨에 따른 조건부 로깅
-- 대용량 객체 로깅 주의
-- 로그 파일 크기 관리 
+## 예제 프로젝트
+전체 예제는 [예제 프로젝트](https://github.com/csh-utils/logging-example)를 참조하세요. 
