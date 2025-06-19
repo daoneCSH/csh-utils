@@ -2,7 +2,7 @@
 
 ## 1. 소개
 
-로깅 모듈은 Java 애플리케이션을 위한 간단하고 효율적인 로깅 시스템을 제공합니다. 이 모듈은 외부 의존성 없이 기본적인 로깅 기능을 제공하며, Java Agent와 일반 Java 애플리케이션 모두에서 사용할 수 있습니다.
+로깅 모듈은 Java 애플리케이션을 위한 고급 로깅 시스템을 제공합니다. 이 모듈은 외부 의존성 없이 기본적인 로깅 기능부터 파일 로깅, 중복 로그 방지, 로그 회전 등의 고급 기능까지 제공하며, Java Agent와 일반 Java 애플리케이션 모두에서 사용할 수 있습니다.
 
 **🎉 새로운 간편한 사용법**: `LoggerFactory.getLogger()` 없이 바로 사용할 수 있는 `Logging` 클래스를 제공합니다.
 
@@ -81,7 +81,43 @@ export CSH_LOGGING_LEVEL=INFO
 3. **환경 변수**: `CSH_LOGGING_LEVEL=WARN`
 4. **기본값**: `INFO`
 
-## 4. 조건부 로깅
+## 4. 고급 기능
+
+### 4.1 파일 로깅
+
+파일 로깅을 활성화하면 로그가 파일에도 저장됩니다:
+
+```bash
+# 파일 로깅 활성화
+-Dcsh.logging.file=true
+-Dcsh.logging.dir=/path/to/logs
+-Dcsh.logging.rotation.enabled=true
+-Dcsh.logging.keep.days=30
+-Dcsh.logging.prefix=myapp
+```
+
+**설정 옵션:**
+- `csh.logging.file`: 파일 로깅 활성화 (기본값: false)
+- `csh.logging.console`: 콘솔 출력 활성화 (기본값: true)
+- `csh.logging.dir`: 로그 디렉토리 (기본값: logs)
+- `csh.logging.rotation.enabled`: 로그 회전 활성화 (기본값: true)
+- `csh.logging.keep.days`: 로그 보관 기간 (기본값: 30)
+- `csh.logging.prefix`: 로그 파일 접두사 (기본값: csh)
+
+### 4.2 중복 로그 방지
+
+동일한 ID의 로그가 짧은 시간 내에 반복되는 것을 방지할 수 있습니다:
+
+```java
+import io.csh.utils.logging.LoggerImpl;
+
+LoggerImpl loggerImpl = (LoggerImpl) LoggerFactory.getLogger(MyClass.class);
+
+// 5초 간격으로 중복 방지
+loggerImpl.logWithDuplicateFilter(LogLevel.INFO, "connection-retry", "Connection failed", 5);
+```
+
+### 4.3 조건부 로깅
 
 성능 최적화를 위해 조건부 로깅을 사용할 수 있습니다:
 
@@ -120,6 +156,7 @@ public class YourAgent {
 
 ## 6. 로그 포맷
 
+### 6.1 기본 형식
 로그는 다음과 같은 형식으로 출력됩니다:
 
 ```
@@ -130,6 +167,11 @@ public class YourAgent {
 java.lang.RuntimeException: 테스트 예외
     at MyClass.method(MyClass.java:10)
     ...
+```
+
+### 6.2 중복 방지 형식 (Spiceware 스타일)
+```
+2024-06-18 14:30:45.123 INFO [CSH:connection-retry] Connection failed
 ```
 
 포맷 구성:
@@ -172,11 +214,21 @@ if (Logging.isDebugEnabled()) {
 // 좋은 예: if (Logging.isDebugEnabled()) { Logging.debug("데이터: {}", expensiveObject); }
 ```
 
+### 7.4 파일 로깅 고려사항
+```java
+// 파일 로깅 사용 시 디스크 공간 모니터링
+// 로그 회전 및 보관 기간 적절히 설정
+// 중요 로그는 별도 파일로 분리 고려
+```
+
 ## 8. 완전한 예제
 
 ```java
 import io.csh.utils.logging.Logging;
 import io.csh.utils.logging.LogLevel;
+import io.csh.utils.logging.Logger;
+import io.csh.utils.logging.LoggerFactory;
+import io.csh.utils.logging.LoggerImpl;
 
 public class MyApplication {
     public static void main(String[] args) {
@@ -212,6 +264,10 @@ public class MyApplication {
             }
         }
         
+        // 중복 로그 방지 예제
+        LoggerImpl loggerImpl = (LoggerImpl) LoggerFactory.getLogger(MyApplication.class);
+        loggerImpl.logWithDuplicateFilter(LogLevel.INFO, "data-process", "데이터 처리 완료", 10);
+        
         Logging.trace("processData() 메서드 종료");
     }
 }
@@ -224,7 +280,13 @@ public class MyApplication {
 2. 로그 레벨 설정: `Logging.setLogLevel(LogLevel.DEBUG)`
 3. 시스템 프로퍼티 확인: `-Dcsh.logging.level=DEBUG`
 
-### 9.2 클래스명이 잘못 표시되는 경우
+### 9.2 파일 로깅이 작동하지 않는 경우
+1. 파일 로깅 활성화 확인: `-Dcsh.logging.file=true`
+2. 로그 디렉토리 권한 확인
+3. 디스크 공간 확인
+4. 로그 파일 생성 확인
+
+### 9.3 클래스명이 잘못 표시되는 경우
 - 스택 트레이스 기반으로 자동 감지되므로 정상 동작
 - 필요시 기존 방식 사용: `LoggerFactory.getLogger(MyClass.class)`
 
@@ -234,6 +296,8 @@ public class MyApplication {
 2. **외부 의존성 없음**: 순수 Java만 사용
 3. **가벼운 구현**: 메모리 사용량 최소화
 4. **스레드 안전**: 멀티스레드 환경에서 안전하게 사용 가능
+5. **파일 I/O**: 파일 로깅 사용 시 성능 영향 고려
+6. **디스크 공간**: 로그 회전 및 보관 기간 적절히 설정
 
 ## 11. 관련 문서
 
@@ -259,4 +323,17 @@ Logging.info("메시지");
 **변경 사항:**
 - `LoggerFactory.getLogger()` 제거
 - `Logging.` 접두사로 변경
-- 클래스명 자동 감지로 수동 지정 불필요 
+- 클래스명 자동 감지로 수동 지정 불필요
+
+### Spiceware Logger에서 마이그레이션
+
+**Spiceware Logger:**
+```java
+Logger.info("id", "Message");
+```
+
+**CSH Utils Logger:**
+```java
+LoggerImpl loggerImpl = (LoggerImpl) LoggerFactory.getLogger(MyClass.class);
+loggerImpl.logWithDuplicateFilter(LogLevel.INFO, "id", "Message", 0);
+``` 

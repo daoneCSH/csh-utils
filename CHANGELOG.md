@@ -2,6 +2,51 @@
 
 모든 주요 변경사항이 이 파일에 기록됩니다.
 
+## [1.0.4] - 2024-12-19
+
+### Added
+- 로깅 모듈 (logging)
+  - **🚀 고급 로깅 기능 추가**
+    - 파일 로깅 지원: 로그 파일 자동 생성 및 관리
+    - 로그 회전: 날짜별 로그 파일 회전
+    - 중복 로그 방지: 동일한 ID의 로그 중복 방지
+    - 자동 정리: 오래된 로그 파일 자동 삭제
+    - 성능 최적화: StringBuilder 사용 및 비동기 처리
+  - **새로운 클래스 추가**
+    - `LogConfig`: 로그 설정 관리
+    - `LogFileManager`: 파일 로깅 관리
+    - `DuplicateLogFilter`: 중복 로그 방지
+    - `LogFormatter`: 로그 메시지 포맷팅
+  - **Spiceware Logger 호환성**
+    - 내림차순 로그 레벨 (TRACE=4, ERROR=0)
+    - Spiceware 스타일 로그 포맷 지원
+    - 중복 로그 방지 기능 호환
+
+### Changed
+- 로깅 모듈 (logging)
+  - `LogLevel` enum 값 변경: Spiceware Logger와 호환되도록 내림차순으로 변경
+    - TRACE: 0 → 4
+    - DEBUG: 1 → 3
+    - INFO: 2 → 2 (변경 없음)
+    - WARN: 3 → 1
+    - ERROR: 4 → 0
+  - `LoggerImpl` 개선: 파일 로깅 및 중복 로그 방지 기능 통합
+  - `LoggerFactory` 확장: 리소스 정리 및 중복 필터 관리 기능 추가
+  - 로그 포맷 개선: 더 상세한 타임스탬프 및 스레드 정보 포함
+
+### Fixed
+- 로깅 모듈 (logging)
+  - 성능 최적화: StringBuilder 사용으로 문자열 연산 최적화
+  - 메모리 관리: 중복 로그 필터의 메모리 사용량 제한
+  - 스레드 안전성: 파일 로깅 및 중복 필터의 스레드 안전성 강화
+
+### Documentation
+- 로깅 모듈 문서 업데이트
+  - `docs/guides/logging.md`: 고급 기능 사용법 추가
+  - `docs/modules/logging/README.md`: 개선된 기능 설명 추가
+  - `docs/design/logging.md`: 아키텍처 및 설계 문서 업데이트
+  - 마이그레이션 가이드 추가: Spiceware Logger에서 마이그레이션 방법
+
 ## [1.0.0-SNAPSHOT] - Unreleased
 
 ### 변경됨

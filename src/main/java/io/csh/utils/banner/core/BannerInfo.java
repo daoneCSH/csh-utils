@@ -12,6 +12,11 @@ import java.time.format.DateTimeFormatter;
  */
 public class BannerInfo {
     /**
+     * 빌드 시간 포맷터 (yyyy-MM-dd HH:mm:ss)
+     */
+    private static final DateTimeFormatter BUILD_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    
+    /**
      * 애플리케이션 이름
      */
     private final String name;
@@ -140,7 +145,7 @@ public class BannerInfo {
         /**
          * 빌드 시간
          */
-        private String buildTime = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        private String buildTime = LocalDateTime.now().format(BUILD_TIME_FORMATTER);
         /**
          * Java 버전
          */

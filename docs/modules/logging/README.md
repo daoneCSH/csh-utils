@@ -1,22 +1,29 @@
 # CSH Utils Logging Module
 
-## 최근 변경사항 (2024-06-18)
+## 최근 변경사항 (2024-12-19)
+- **🚀 고급 로깅 기능 추가**: 파일 로깅, 중복 로그 방지, 로그 회전
 - **🎉 새로운 간편한 사용법**: `Logging` 클래스 추가
 - 표준 로깅 레벨 지원 (TRACE, DEBUG, INFO, WARN, ERROR)
 - 클래스명 자동 감지 기능
 - 스택 트레이스 기반 호출 클래스 식별
 - Java Agent 호환성 개선
+- Spiceware Logger 호환성 추가
 
 ## Overview
-CSH Utils의 로깅 모듈은 간단하고 효율적인 로깅 기능을 제공합니다. 외부 의존성 없이 기본적인 로깅 기능을 제공하며, Java Agent와 일반 Java 애플리케이션 모두에서 사용할 수 있습니다.
+CSH Utils의 로깅 모듈은 간단하고 효율적인 로깅 기능부터 고급 기능까지 제공합니다. 외부 의존성 없이 기본적인 로깅 기능, 파일 로깅, 중복 로그 방지, 로그 회전 등의 고급 기능을 제공하며, Java Agent와 일반 Java 애플리케이션 모두에서 사용할 수 있습니다.
 
 ## Features
 - **간편한 사용법**: `Logging.info("메시지")` 형태로 바로 사용
 - **표준 로그 레벨**: TRACE, DEBUG, INFO, WARN, ERROR 지원
 - **클래스명 자동 감지**: 스택 트레이스로 호출 클래스 자동 파악
 - **설정 가능한 로그 레벨**: 런타임 및 시스템 프로퍼티로 제어
+- **파일 로깅**: 로그 파일 자동 생성 및 관리
+- **로그 회전**: 날짜별 로그 파일 회전
+- **중복 로그 방지**: 동일한 ID의 로그 중복 방지
+- **자동 정리**: 오래된 로그 파일 자동 삭제
 - **Java Agent 호환**: 클래스로더 분리 환경에서 안정적 동작
 - **스레드 안전**: 멀티스레드 환경에서 안전하게 사용
+- **성능 최적화**: StringBuilder 사용 및 비동기 처리
 
 ## Quick Start
 
@@ -73,6 +80,25 @@ export CSH_LOGGING_LEVEL=INFO
 3. **환경 변수**: `CSH_LOGGING_LEVEL=WARN`
 4. **기본값**: `INFO`
 
+### 파일 로깅 설정
+```bash
+# 파일 로깅 활성화
+-Dcsh.logging.file=true
+-Dcsh.logging.dir=/path/to/logs
+-Dcsh.logging.rotation.enabled=true
+-Dcsh.logging.keep.days=30
+-Dcsh.logging.prefix=myapp
+-Dcsh.logging.console=true
+```
+
+**설정 옵션:**
+- `csh.logging.file`: 파일 로깅 활성화 (기본값: false)
+- `csh.logging.console`: 콘솔 출력 활성화 (기본값: true)
+- `csh.logging.dir`: 로그 디렉토리 (기본값: logs)
+- `csh.logging.rotation.enabled`: 로그 회전 활성화 (기본값: true)
+- `csh.logging.keep.days`: 로그 보관 기간 (기본값: 30)
+- `csh.logging.prefix`: 로그 파일 접두사 (기본값: csh)
+
 ### 로그 포맷
 로그는 다음과 같은 형식으로 출력됩니다:
 ```
@@ -80,6 +106,11 @@ export CSH_LOGGING_LEVEL=INFO
 2024-06-18 14:30:45.124 [main] DEBUG MyClass - 데이터 처리 중
 2024-06-18 14:30:45.125 [main] WARN  MyClass - 성능 저하 감지
 2024-06-18 14:30:45.126 [main] ERROR MyClass - 오류 발생
+```
+
+**중복 방지 형식 (Spiceware 스타일):**
+```
+2024-06-18 14:30:45.123 INFO [CSH:connection-retry] Connection failed
 ```
 
 포맷 구성:
@@ -121,6 +152,28 @@ public class MyApplication {
         }
         
         Logging.trace("processData() 메서드 종료");
+    }
+}
+```
+
+### 고급 기능 사용
+```java
+import io.csh.utils.logging.Logger;
+import io.csh.utils.logging.LoggerFactory;
+import io.csh.utils.logging.LoggerImpl;
+import io.csh.utils.logging.LogLevel;
+
+public class AdvancedLoggingExample {
+    public static void main(String[] args) {
+        // 중복 로그 방지
+        LoggerImpl loggerImpl = (LoggerImpl) LoggerFactory.getLogger(AdvancedLoggingExample.class);
+        
+        // 5초 간격으로 중복 방지
+        loggerImpl.logWithDuplicateFilter(LogLevel.INFO, "connection-retry", "Connection failed", 5);
+        loggerImpl.logWithDuplicateFilter(LogLevel.INFO, "connection-retry", "Connection failed", 5); // 출력되지 않음
+        
+        // 다른 ID는 출력됨
+        loggerImpl.logWithDuplicateFilter(LogLevel.INFO, "different-id", "Different message", 5);
     }
 }
 ```
@@ -168,7 +221,7 @@ logger.info("메시지");
 
 ## Log Levels
 
-### TRACE (0)
+### TRACE (4)
 가장 상세한 디버깅 정보
 - 메서드 진입/종료
 - 변수 값 추적
@@ -179,7 +232,7 @@ Logging.trace("메서드 진입");
 Logging.trace("변수 값: {}", variable);
 ```
 
-### DEBUG (1)
+### DEBUG (3)
 개발 시 디버깅 정보
 - 조건문 분기 정보
 - 중간 결과값
@@ -201,7 +254,7 @@ Logging.info("애플리케이션 시작");
 Logging.info("사용자 {} 로그인", userId);
 ```
 
-### WARN (3)
+### WARN (1)
 경고 메시지 (잠재적 문제)
 - 성능 저하 가능성
 - 권장되지 않는 사용법
@@ -212,7 +265,7 @@ Logging.warn("성능 저하 감지");
 Logging.warn("권장되지 않는 API 사용");
 ```
 
-### ERROR (4)
+### ERROR (0)
 오류 및 예외 상황
 - 예외 발생
 - 시스템 오류
@@ -249,12 +302,25 @@ if (Logging.isDebugEnabled()) {
 // 좋은 예: if (Logging.isDebugEnabled()) { Logging.debug("데이터: {}", expensiveObject); }
 ```
 
+### 파일 로깅 고려사항
+```java
+// 파일 로깅 사용 시 디스크 공간 모니터링
+// 로그 회전 및 보관 기간 적절히 설정
+// 중요 로그는 별도 파일로 분리 고려
+```
+
 ## 문제 해결
 
 ### 로그가 출력되지 않는 경우
 1. 로그 레벨 확인: `Logging.getLogLevel()`
 2. 로그 레벨 설정: `Logging.setLogLevel(LogLevel.DEBUG)`
 3. 시스템 프로퍼티 확인: `-Dcsh.logging.level=DEBUG`
+
+### 파일 로깅이 작동하지 않는 경우
+1. 파일 로깅 활성화 확인: `-Dcsh.logging.file=true`
+2. 로그 디렉토리 권한 확인
+3. 디스크 공간 확인
+4. 로그 파일 생성 확인
 
 ### 클래스명이 잘못 표시되는 경우
 - 스택 트레이스 기반으로 자동 감지되므로 정상 동작
@@ -280,6 +346,19 @@ Logging.info("메시지");
 - `Logging.` 접두사로 변경
 - 클래스명 자동 감지로 수동 지정 불필요
 
+### Spiceware Logger에서 마이그레이션
+
+**Spiceware Logger:**
+```java
+Logger.info("id", "Message");
+```
+
+**CSH Utils Logger:**
+```java
+LoggerImpl loggerImpl = (LoggerImpl) LoggerFactory.getLogger(MyClass.class);
+loggerImpl.logWithDuplicateFilter(LogLevel.INFO, "id", "Message", 0);
+```
+
 ## Notes
 - 로그 메시지는 UTF-8 인코딩을 사용합니다.
 - 로그 메시지는 자동으로 타임스탬프가 추가됩니다.
@@ -287,6 +366,8 @@ Logging.info("메시지");
 - 클래스명은 스택 트레이스를 통해 자동으로 감지됩니다.
 - Java Agent 환경에서 안정적으로 동작합니다.
 - 외부 의존성 없이 순수 Java만 사용합니다.
+- 파일 로깅 사용 시 성능 영향이 있을 수 있습니다.
+- 로그 회전 및 보관 기간을 적절히 설정해야 합니다.
 
 ## 테스트 코드 예시
 
@@ -294,7 +375,10 @@ JUnit5 기반 테스트 예시:
 ```java
 import io.csh.utils.logging.Logging;
 import io.csh.utils.logging.LogLevel;
+import io.csh.utils.logging.LoggerImpl;
+import io.csh.utils.logging.LoggerFactory;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class LoggingTest {
@@ -318,6 +402,26 @@ public class LoggingTest {
         } catch (Exception e) {
             Logging.error("예외 발생", e);
         }
+    }
+    
+    @Test
+    void testDuplicateLogFilter() {
+        LoggerImpl loggerImpl = (LoggerImpl) LoggerFactory.getLogger(LoggingTest.class);
+        
+        // 중복 로그 방지 테스트
+        loggerImpl.logWithDuplicateFilter(LogLevel.INFO, "test-id", "First message", 5);
+        loggerImpl.logWithDuplicateFilter(LogLevel.INFO, "test-id", "Second message", 5); // 출력되지 않음
+        
+        // 다른 ID는 출력됨
+        loggerImpl.logWithDuplicateFilter(LogLevel.INFO, "different-id", "Different message", 5);
+    }
+    
+    @AfterEach
+    void tearDown() {
+        // 테스트 후 정리
+        LoggerFactory.clear();
+        LoggerFactory.clearDuplicateFilter();
+        LoggerFactory.shutdown();
     }
 }
 ``` 

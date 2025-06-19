@@ -6,39 +6,18 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * 로거 팩토리
  * 
- * <p>로거 인스턴스를 관리하고 전역 로그 레벨을 제어합니다.</p>
+ * <p>로거 인스턴스를 관리하고 전역 로그 레벨을 제어합니다.
+ * 파일 로깅, 중복 로그 방지 등의 고급 기능을 지원합니다.</p>
  */
 public final class LoggerFactory {
     private static final ConcurrentMap<String, Logger> loggers = new ConcurrentHashMap<>();
 
     static {
-        initializeLogLevel();
+        // LoggerImpl에서 초기화하므로 여기서는 제거
     }
 
     private LoggerFactory() {
         throw new AssertionError("Utility class");
-    }
-
-    /**
-     * 로그 레벨을 초기화합니다.
-     * 시스템 프로퍼티나 환경 변수에서 설정을 읽어옵니다.
-     */
-    private static void initializeLogLevel() {
-        String levelStr = System.getProperty("csh.logging.level");
-        if (levelStr == null) {
-            levelStr = System.getenv("CSH_LOGGING_LEVEL");
-        }
-        if (levelStr == null) {
-            levelStr = "INFO"; // 기본값
-        }
-        
-        try {
-            LogLevel level = LogLevel.fromString(levelStr);
-            LoggerImpl.setLogLevel(level);
-        } catch (IllegalArgumentException e) {
-            System.err.println("Invalid log level: " + levelStr + ", using INFO as default");
-            LoggerImpl.setLogLevel(LogLevel.INFO);
-        }
     }
 
     /**
@@ -58,6 +37,8 @@ public final class LoggerFactory {
      */
     public static void setLogLevel(LogLevel level) {
         LoggerImpl.setLogLevel(level);
+        // 기존 로거 인스턴스들을 무효화하여 새로운 설정이 적용되도록 함
+        loggers.clear();
     }
 
     /**
@@ -75,5 +56,27 @@ public final class LoggerFactory {
      */
     public static void clear() {
         loggers.clear();
+    }
+    
+    /**
+     * 중복 로그 필터를 초기화합니다.
+     */
+    public static void clearDuplicateFilter() {
+        DuplicateLogFilter.clear();
+    }
+    
+    /**
+     * 로그 파일 매니저를 종료합니다.
+     */
+    public static void shutdown() {
+        LogFileManager.getInstance().shutdown();
+    }
+
+    /**
+     * 로그 설정을 리셋합니다.
+     * 주로 테스트에서 사용됩니다.
+     */
+    public static void resetConfig() {
+        LogConfig.reset();
     }
 } 

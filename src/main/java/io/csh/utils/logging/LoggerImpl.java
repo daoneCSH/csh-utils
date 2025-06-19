@@ -1,22 +1,27 @@
 package io.csh.utils.logging;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
 /**
  * 로거 구현체
  * 
  * <p>표준 로깅 레벨을 모두 지원하며, 설정된 로그 레벨에 따라
- * 출력을 제어합니다.</p>
+ * 출력을 제어합니다. 파일 로깅, 중복 로그 방지, 로그 회전 등의
+ * 고급 기능을 제공합니다.</p>
  */
 public final class LoggerImpl implements Logger {
     private final String name;
-    private static volatile LogLevel currentLevel = LogLevel.INFO;
-    private static final DateTimeFormatter TIMESTAMP_FORMATTER = 
-        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+    private static volatile LogLevel currentLevel;
+    private final LogConfig config;
+    private final LogFileManager fileManager;
+
+    static {
+        initializeLogLevel();
+    }
 
     private LoggerImpl(Class<?> clazz) {
         this.name = clazz.getName();
+        this.config = LogConfig.getInstance();
+        this.fileManager = LogFileManager.getInstance();
+        this.fileManager.initialize();
     }
 
     /**
@@ -27,6 +32,28 @@ public final class LoggerImpl implements Logger {
      */
     public static LoggerImpl getInstance(Class<?> clazz) {
         return new LoggerImpl(clazz);
+    }
+
+    /**
+     * 로그 레벨을 초기화합니다.
+     * 시스템 프로퍼티나 환경 변수에서 설정을 읽어옵니다.
+     */
+    private static void initializeLogLevel() {
+        String levelStr = System.getProperty("csh.logging.level");
+        if (levelStr == null) {
+            levelStr = System.getenv("CSH_LOGGING_LEVEL");
+        }
+        if (levelStr == null) {
+            levelStr = "INFO"; // 기본값
+        }
+        
+        try {
+            LogLevel level = LogLevel.fromString(levelStr);
+            currentLevel = level;
+        } catch (IllegalArgumentException e) {
+            System.err.println("Invalid log level: " + levelStr + ", using INFO as default");
+            currentLevel = LogLevel.INFO;
+        }
     }
 
     /**
@@ -48,92 +75,125 @@ public final class LoggerImpl implements Logger {
     }
 
     /**
-     * 로그 메시지를 포맷팅합니다.
+     * 로그 메시지를 출력합니다.
      *
      * @param level 로그 레벨
      * @param message 로그 메시지
-     * @return 포맷팅된 로그 메시지
      */
-    private String formatMessage(LogLevel level, String message) {
-        String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
-        String threadName = Thread.currentThread().getName();
-        return String.format("%s [%s] %-5s %s - %s", 
-            timestamp, threadName, level.name(), name, message);
+    private void log(LogLevel level, String message) {
+        if (!level.isEnabled(currentLevel)) {
+            return;
+        }
+        
+        String formattedMessage = LogFormatter.format(level, name, message);
+        outputLog(formattedMessage, level);
+    }
+
+    /**
+     * 예외 정보를 포함한 로그 메시지를 출력합니다.
+     *
+     * @param level 로그 레벨
+     * @param message 로그 메시지
+     * @param thrown 예외 정보
+     */
+    private void log(LogLevel level, String message, Throwable thrown) {
+        if (!level.isEnabled(currentLevel)) {
+            return;
+        }
+        
+        String formattedMessage = LogFormatter.formatWithException(level, name, message, thrown);
+        outputLog(formattedMessage, level);
+    }
+
+    /**
+     * 로그를 출력합니다.
+     *
+     * @param message 포맷팅된 로그 메시지
+     * @param level 로그 레벨
+     */
+    private void outputLog(String message, LogLevel level) {
+        // 콘솔 출력
+        if (config.isConsoleOutput()) {
+            if (level == LogLevel.ERROR || level == LogLevel.WARN) {
+                System.err.println(message);
+            } else {
+                System.out.println(message);
+            }
+        }
+        
+        // 파일 출력
+        fileManager.writeToFile(message);
+    }
+
+    /**
+     * 중복 로그 방지를 적용하여 로그를 출력합니다.
+     *
+     * @param level 로그 레벨
+     * @param id 로그 식별자
+     * @param message 로그 메시지
+     * @param minIntervalSeconds 최소 간격 (초)
+     */
+    public void logWithDuplicateFilter(LogLevel level, String id, String message, int minIntervalSeconds) {
+        if (!level.isEnabled(currentLevel)) {
+            return;
+        }
+        
+        if (!DuplicateLogFilter.shouldLog(id, minIntervalSeconds)) {
+            return;
+        }
+        
+        String formattedMessage = LogFormatter.formatSimple(level, id, message);
+        outputLog(formattedMessage, level);
     }
 
     @Override
     public void trace(String message) {
-        if (LogLevel.TRACE.isEnabled(currentLevel)) {
-            System.out.println(formatMessage(LogLevel.TRACE, message));
-        }
+        log(LogLevel.TRACE, message);
     }
 
     @Override
     public void trace(String message, Throwable thrown) {
-        if (LogLevel.TRACE.isEnabled(currentLevel)) {
-            System.out.println(formatMessage(LogLevel.TRACE, message));
-            thrown.printStackTrace(System.out);
-        }
+        log(LogLevel.TRACE, message, thrown);
     }
 
     @Override
     public void debug(String message) {
-        if (LogLevel.DEBUG.isEnabled(currentLevel)) {
-            System.out.println(formatMessage(LogLevel.DEBUG, message));
-        }
+        log(LogLevel.DEBUG, message);
     }
 
     @Override
     public void debug(String message, Throwable thrown) {
-        if (LogLevel.DEBUG.isEnabled(currentLevel)) {
-            System.out.println(formatMessage(LogLevel.DEBUG, message));
-            thrown.printStackTrace(System.out);
-        }
+        log(LogLevel.DEBUG, message, thrown);
     }
 
     @Override
     public void info(String message) {
-        if (LogLevel.INFO.isEnabled(currentLevel)) {
-            System.out.println(formatMessage(LogLevel.INFO, message));
-        }
+        log(LogLevel.INFO, message);
     }
 
     @Override
     public void info(String message, Throwable thrown) {
-        if (LogLevel.INFO.isEnabled(currentLevel)) {
-            System.out.println(formatMessage(LogLevel.INFO, message));
-            thrown.printStackTrace(System.out);
-        }
+        log(LogLevel.INFO, message, thrown);
     }
 
     @Override
     public void warn(String message) {
-        if (LogLevel.WARN.isEnabled(currentLevel)) {
-            System.err.println(formatMessage(LogLevel.WARN, message));
-        }
+        log(LogLevel.WARN, message);
     }
 
     @Override
     public void warn(String message, Throwable thrown) {
-        if (LogLevel.WARN.isEnabled(currentLevel)) {
-            System.err.println(formatMessage(LogLevel.WARN, message));
-            thrown.printStackTrace(System.err);
-        }
+        log(LogLevel.WARN, message, thrown);
     }
 
     @Override
     public void error(String message) {
-        if (LogLevel.ERROR.isEnabled(currentLevel)) {
-            System.err.println(formatMessage(LogLevel.ERROR, message));
-        }
+        log(LogLevel.ERROR, message);
     }
 
     @Override
     public void error(String message, Throwable thrown) {
-        if (LogLevel.ERROR.isEnabled(currentLevel)) {
-            System.err.println(formatMessage(LogLevel.ERROR, message));
-            thrown.printStackTrace(System.err);
-        }
+        log(LogLevel.ERROR, message, thrown);
     }
 
     @Override

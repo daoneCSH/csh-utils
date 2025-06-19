@@ -164,35 +164,38 @@ AppBanner.builder()
 애플리케이션의 로그를 관리하고 출력을 캡처합니다.
 
 ```java
-// 로그 설정
-LogConfig config = LogConfig.builder()
-    .withLogLevel(LogLevel.INFO)
-    .withLogFile("app.log")
-    .build();
+// 간편한 로깅 사용
+import io.csh.utils.logging.Logging;
 
-// 로그 출력
+Logging.info("Application started");
+Logging.debug("Debug message");
+Logging.error("Error occurred", exception);
+
+// 고급 로깅 사용
+import io.csh.utils.logging.Logger;
+import io.csh.utils.logging.LoggerFactory;
+
 Logger logger = LoggerFactory.getLogger(YourClass.class);
 logger.info("Application started");
 ```
 
 자세한 사용법은 [로깅 모듈 가이드](docs/guides/logging.md)를 참조하세요.
 
-### 3. 출력 모듈
-표준 출력과 에러 스트림을 관리하고 파일로 캡처합니다.
+### 3. 통합 인터페이스
+로깅과 출력을 통합하여 제공합니다.
 
 ```java
-// 출력 캡처 설정
-OutputConfig config = OutputConfig.builder()
-    .withOutputFile("output.log")
-    .withErrorFile("error.log")
-    .build();
+import io.csh.utils.integration.CSHUtils;
 
-// 출력 캡처 시작
-OutputCapture capture = OutputCapture.create(config);
-capture.start();
+// 로깅만 사용
+CSHUtils.Logging.info(MyClass.class, "Application started");
+
+// 출력만 사용
+CSHUtils.Output.write("Output message");
+
+// 로깅과 출력 동시 사용
+CSHUtils.Integration.logAndOutput(MyClass.class, "Important message");
 ```
-
-자세한 사용법은 [출력 모듈 가이드](docs/guides/output.md)를 참조하세요.
 
 ## 주의사항
 
@@ -241,11 +244,9 @@ public class MyClass {
 
 ## 모듈 구성
 - **core**: 핵심 유틸리티 기능
-- **logging**: 로깅 기능
-- **thread**: 스레드 관련 유틸리티
-- **config**: 설정 관리
+- **logging**: 로깅 기능 (파일 출력 포함)
 - **banner**: 애플리케이션 배너 출력
-- **output**: 시스템 출력 관리
+- **integration**: 로깅과 출력 통합 인터페이스
 
 ## 문서
 - [사용 가이드](docs/guides/usage.md)

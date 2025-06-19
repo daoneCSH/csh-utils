@@ -3,6 +3,7 @@ package io.csh.utils.banner;
 import io.csh.utils.banner.core.BannerConfig;
 import io.csh.utils.banner.core.BannerInfo;
 import io.csh.utils.banner.core.BannerRenderer;
+import io.csh.utils.logging.LogConfig;
 
 /**
  * AppBanner는 BannerInfo와 BannerConfig를 조합하여 콘솔에 배너를 출력하는 최상위 진입점 클래스입니다.
@@ -28,13 +29,16 @@ public class AppBanner {
     private AppBanner(BannerInfo info, BannerConfig config) {
         this.info = info;
         this.config = config;
+        // 배너 이름을 로그 prefix로 자동 동기화하는 로직 제거
+        // 로그 prefix는 별도로 설정하거나 기본값을 사용
     }
 
     /**
-     * 배너를 콘솔에 출력합니다.
+     * 배너를 콘솔과 로그 파일에 출력합니다.
      */
     public void print() {
-        System.out.println(new BannerRenderer(config).render(info));
+        String banner = new BannerRenderer(config).render(info);
+        io.csh.utils.logging.Logging.raw(banner);
     }
 
     /**

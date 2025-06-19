@@ -160,6 +160,28 @@ public final class Logging {
     }
 
     /**
+     * 포맷 없이 순수 텍스트를 출력합니다.
+     * 로그 레벨, 타임스탬프, 스레드 정보 없이 메시지를 그대로 출력합니다.
+     * 주로 배너, 아스키아트, 구분선 등을 출력할 때 사용합니다.
+     *
+     * @param message 출력할 메시지
+     */
+    public static void raw(String message) {
+        // LogFileManager가 초기화되지 않았으면 초기화
+        LogFileManager fileManager = LogFileManager.getInstance();
+        fileManager.initialize();
+        
+        // 파일에 직접 출력
+        fileManager.writeRaw(message);
+        
+        // 콘솔 출력 설정이 활성화된 경우 콘솔에도 출력
+        LogConfig config = LogConfig.getInstance();
+        if (config.isConsoleOutput()) {
+            System.out.println(message);
+        }
+    }
+
+    /**
      * 현재 로그 레벨을 설정합니다.
      *
      * @param level 설정할 로그 레벨
@@ -175,6 +197,34 @@ public final class Logging {
      */
     public static LogLevel getLogLevel() {
         return LoggerFactory.getLogLevel();
+    }
+
+    /**
+     * 현재 로깅 설정을 출력합니다.
+     * 로그 레벨, 파일 출력 설정, 콘솔 출력 설정 등을 포함합니다.
+     */
+    public static void printConfig() {
+        LogConfig config = LogConfig.getInstance();
+        LogLevel currentLevel = getLogLevel();
+        String logDir = config.getLogDir();
+        String logPrefix = config.getLogPrefix();
+        boolean rotation = config.isLogRotationEnabled();
+        int keepDays = config.getLogKeepDays();
+        boolean console = config.isConsoleOutput();
+        String filePattern = logPrefix + "_YYYY-MM-DD_N.log";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== CSH Utils Logging Configuration ===\n");
+        sb.append("Log Level: ").append(currentLevel).append("\n");
+        sb.append("App Name (Log Prefix): ").append(logPrefix).append("\n");
+        sb.append("Log Directory: ").append(logDir).append("\n");
+        sb.append("Console Output: ").append(console).append("\n");
+        sb.append("Log Rotation Enabled: ").append(rotation).append("\n");
+        sb.append("Log Keep Days: ").append(keepDays).append("\n");
+        sb.append("Log File Pattern: ").append(filePattern).append("\n");
+        sb.append("========================================");
+
+        raw(sb.toString());
     }
 
     /**
